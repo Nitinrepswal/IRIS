@@ -71,13 +71,13 @@ class Matrix:
 
         return Matrix(result)
 
-    # matrix * scalar
-    def __mul__(self, scalar):
-        if isinstance(scalar, Matrix):
-            return self.multiply_matrix(scalar)
+    # matrix * scalar, vector or matrix
+    def __mul__(self, other):
+        if isinstance(other, Matrix):
+            return self.multiply_matrix(other)
 
-        if isinstance(scalar, Vector):
-            return self.multiply_vector(scalar)
+        if isinstance(other, Vector):
+            return self.multiply_vector(other)
 
         result = []
 
@@ -85,7 +85,7 @@ class Matrix:
             row = []
 
             for j in range(len(self.values[0])):
-                row.append(self.values[i][j] * scalar)
+                row.append(self.values[i][j] * other)
 
             result.append(row)
 
@@ -160,3 +160,124 @@ class Matrix:
             result.append(row)
 
         return Matrix(result)
+
+    # determinant
+    def determinant(self):
+        rows, columns = self.shape
+
+        if rows != columns:
+            raise ValueError("Determinant requires a square matrix")
+
+        # 1×1
+        if rows == 1:
+            return self.values[0][0]
+
+        # 2×2
+        if rows == 2:
+            a = self.values[0][0]
+            b = self.values[0][1]
+            c = self.values[1][0]
+            d = self.values[1][1]
+
+            return a * d - b * c
+
+        # 3×3 and larger
+        total = 0
+
+        for j in range(columns):
+            minor_matrix = []
+
+            for i in range(1, rows):
+                row = []
+
+                for k in range(columns):
+                    if k != j:
+                        row.append(self.values[i][k])
+
+                minor_matrix.append(row)
+
+            minor = Matrix(minor_matrix).determinant()
+            cofactor = ((-1) ** j) * minor
+
+            total += self.values[0][j] * cofactor
+
+        return total
+
+    # find minor
+    def minor(self, row, column):
+        rows, columns = self.shape
+
+        if rows != columns:
+            raise ValueError("Minor requires a square matrix")
+
+        if row < 0 or row >= rows or column < 0 or column >= columns:
+            raise IndexError("Minor index out of range")
+
+        minor_matrix = []
+
+        for i in range(rows):
+            if i == row:
+                continue
+
+            current_row = []
+
+            for j in range(columns):
+                if j != column:
+                    current_row.append(self.values[i][j])
+
+            minor_matrix.append(current_row)
+
+        return Matrix(minor_matrix)
+
+    # find cofactor
+    def cofactor(self, row, column):
+        minor_value = self.minor(row, column).determinant()
+
+        sign = (-1) ** (row + column)
+
+        return sign * minor_value
+
+    # cofactor matrix
+    def cofactor_matrix(self):
+        rows, columns = self.shape
+
+        if rows != columns:
+            raise ValueError("Cofactor matrix requires a square matrix")
+
+        result = []
+
+        for i in range(rows):
+            row = []
+
+            for j in range(columns):
+                row.append(self.cofactor(i, j))
+
+            result.append(row)
+
+        return Matrix(result)
+
+    # adjugate matrix
+    def adjugate(self):
+        return self.cofactor_matrix().transpose()
+
+    # inverse matrix
+    def inverse(self):
+        determinant = self.determinant()
+
+        if determinant == 0:
+            raise ValueError("Singular matrix has no inverse")
+
+        return (1 / determinant) * self.adjugate()
+
+    # solve AX = B
+    def solve(self, b):
+        if not isinstance(b, Vector):
+            raise TypeError("B must be a Vector")
+
+        if self.shape[0] != self.shape[1]:
+            raise ValueError("Matrix must be square")
+
+        if len(b.values) != self.shape[0]:
+            raise ValueError("Vector size must match matrix rows")
+
+        return self.inverse() * b

@@ -1,6 +1,5 @@
 from vector import Vector
 
-
 class Matrix:
 
     # create matrix

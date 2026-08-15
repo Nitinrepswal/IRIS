@@ -1,6 +1,5 @@
 from lu import lu_decomposition
 
-
 A = [
     [2, 1],
     [4, 3]

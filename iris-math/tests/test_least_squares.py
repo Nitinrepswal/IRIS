@@ -1,6 +1,5 @@
 from least_squares import least_squares
 
-
 A = [
     [1, 1],
     [2, 1],

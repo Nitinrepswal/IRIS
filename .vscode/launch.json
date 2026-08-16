@@ -110,6 +110,28 @@
                 "PYTHONPATH": "${workspaceFolder}/iris-math"
             },
             "console": "integratedTerminal"
+        },
+        {
+            "name": "IRIS - Run Dataset Test",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/iris-math/tests/test_dataset.py",
+            "cwd": "${workspaceFolder}/iris-math",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "IRIS - Run Scaling Test",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/iris-math/tests/test_scaling.py",
+            "cwd": "${workspaceFolder}/iris-math",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+            "console": "integratedTerminal"
         }
     ]
 }

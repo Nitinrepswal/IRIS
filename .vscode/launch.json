@@ -165,6 +165,17 @@
                 "PYTHONPATH": "${workspaceFolder}/iris-math"
             },
             "console": "integratedTerminal"
-        }
+        },
+        {
+          "name": "IRIS - Run Gradient Descent Test",
+          "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/iris-math/tests/test_gradient_descent.py",
+          "cwd": "${workspaceFolder}/iris-math",
+          "env": {
+              "PYTHONPATH": "${workspaceFolder}/iris-math"
+             },
+          "console": "integratedTerminal"
+}
     ]
 }

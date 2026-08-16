@@ -198,6 +198,94 @@
                "PYTHONPATH": "${workspaceFolder}/iris-math"
             },
           "console": "integratedTerminal"
-       }
+       },
+       {
+          "name": "IRIS - Run Classification Test",
+          "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/iris-math/tests/test_classification.py",
+          "cwd": "${workspaceFolder}/iris-math",
+          "env": {
+             "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+          "console": "integratedTerminal"
+        },
+        {
+          "name": "IRIS - Run KNN Test",
+          "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/iris-math/tests/test_knn.py",
+          "cwd": "${workspaceFolder}/iris-math",
+          "env": {
+              "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+          "console": "integratedTerminal"
+        },
+        {
+          "name": "IRIS - Run Naive Bayes Test",
+          "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/iris-math/tests/test_naive_bayes.py",
+          "cwd": "${workspaceFolder}/iris-math",
+          "env": {
+              "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+         "console": "integratedTerminal"
+        },
+        {
+           "name": "IRIS - Run Decision Tree Test",
+           "type": "debugpy",
+           "request": "launch",
+           "program": "${workspaceFolder}/iris-math/tests/test_decision_tree.py",
+           "cwd": "${workspaceFolder}/iris-math",
+           "env": {
+                "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+          "console": "integratedTerminal"
+        },
+        {
+           "name": "IRIS - Run Random Forest Test",
+           "type": "debugpy",
+           "request": "launch",
+           "program": "${workspaceFolder}/iris-math/tests/test_random_forest.py",
+           "cwd": "${workspaceFolder}/iris-math",
+           "env": {
+                "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+          "console": "integratedTerminal"
+        },
+        {
+          "name": "IRIS - Run SVM Test",
+         "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/iris-math/tests/test_svm.py",
+           "cwd": "${workspaceFolder}/iris-math",
+          "env": {
+                "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+          "console": "integratedTerminal"
+        },
+        {
+          "name": "IRIS - Run SVM Margin Test",
+          "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/iris-math/tests/test_svm_margin.py",
+           "cwd": "${workspaceFolder}/iris-math",
+           "env": {
+               "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+          "console": "integratedTerminal"
+        },
+        {
+           "name": "IRIS - Run SVM Trainer Test",
+           "type": "debugpy",
+            "request": "launch",
+           "program": "${workspaceFolder}/iris-math/tests/test_svm_trainer.py",
+          "cwd": "${workspaceFolder}/iris-math",
+          "env": {
+               "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+          "console": "integratedTerminal"
+        }
     ]
 }

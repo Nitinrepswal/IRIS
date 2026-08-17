@@ -1,5 +1,5 @@
 class SimpleNeuron:
-    def __init__(self, weight=0.5, bias=0.0, learning_rate=0.1):
+    def __init__(self, weight=0.2, bias=0.0, learning_rate=0.1):
         self.weight = weight
         self.bias = bias
         self.learning_rate = learning_rate

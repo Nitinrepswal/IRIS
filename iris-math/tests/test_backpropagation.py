@@ -2,7 +2,7 @@ from backpropagation import SimpleNeuron
 
 
 neuron = SimpleNeuron(
-    weight=0.5,
+    weight=0.2,
     bias=0.0,
     learning_rate=0.1
 )

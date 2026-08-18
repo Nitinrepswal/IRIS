@@ -506,6 +506,28 @@
                 "PYTHONPATH": "${workspaceFolder}/iris-math"
             },
           "console": "integratedTerminal"
+        },
+        {
+          "name": "IRIS - Run Transformers Test",
+         "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/iris-math/tests/test_transformers.py",
+          "cwd": "${workspaceFolder}/iris-math",
+           "env": {
+              "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+           "console": "integratedTerminal"
+        },
+        {
+         "name": "IRIS - Run Tokenization Test",
+          "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/iris-math/tests/test_tokenization.py",
+           "cwd": "${workspaceFolder}/iris-math",
+            "env": {
+               "PYTHONPATH": "${workspaceFolder}/iris-math"
+            },
+          "console": "integratedTerminal"
         }
     ]
 }

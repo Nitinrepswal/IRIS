@@ -550,6 +550,17 @@
              "PYTHONPATH": "${workspaceFolder}/iris-math"
           },
          "console": "integratedTerminal"
-       }
+       },
+       {
+          "name": "IRIS - Run Multi-Head Attention Test",
+          "type": "debugpy",
+          "request": "launch",
+          "program": "${workspaceFolder}/iris-math/tests/test_multi_head_attention.py",
+          "cwd": "${workspaceFolder}/iris-math",
+           "env": {
+            "PYTHONPATH": "${workspaceFolder}/iris-math"
+          },
+         "console": "integratedTerminal"
+        }
     ]
 }

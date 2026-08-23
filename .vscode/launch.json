@@ -583,6 +583,17 @@
              "PYTHONPATH": "${workspaceFolder}/iris-math"
             },
          "console": "integratedTerminal"
-       }
+       },
+       {
+         "name": "IRIS - Run Prompt Engineering Test",
+         "type": "debugpy",
+         "request": "launch",
+         "program": "${workspaceFolder}/iris-math/tests/test_prompt_engineering.py",
+         "cwd": "${workspaceFolder}/iris-math",
+         "env": {
+             "PYTHONPATH": "${workspaceFolder}/iris-math"
+          },
+          "console": "integratedTerminal"
+        }
     ]
 }

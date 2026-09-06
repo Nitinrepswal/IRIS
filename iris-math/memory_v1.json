@@ -2,6 +2,14 @@
     "conversation": [
         {
             "role": "user",
+            "content": "I am building an AI assistant."
+        },
+        {
+            "role": "assistant",
+            "content": "That's a great project."
+        },
+        {
+            "role": "user",
             "content": "Hello IRIS."
         },
         {

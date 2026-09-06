@@ -847,6 +847,17 @@
             "PYTHONPATH": "${workspaceFolder}/iris-math"
           },
        "console": "integratedTerminal"
+      },
+      {
+        "name": "IRIS - Run Agent Memory",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/iris-math/tests/test_agent_memory.py",
+       "cwd": "${workspaceFolder}/iris-math",
+        "env": {
+           "PYTHONPATH": "${workspaceFolder}/iris-math"
+          },
+       "console": "integratedTerminal"
       }
     ]
 }

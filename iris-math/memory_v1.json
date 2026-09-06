@@ -1,0 +1,31 @@
+{
+    "conversation": [
+        {
+            "role": "user",
+            "content": "Hello IRIS."
+        },
+        {
+            "role": "assistant",
+            "content": "Hello! How can I help?"
+        },
+        {
+            "role": "user",
+            "content": "I am building an AI assistant."
+        },
+        {
+            "role": "assistant",
+            "content": "That's a great project."
+        }
+    ],
+    "knowledge": {
+        "preferences": [
+            "User prefers simple explanations."
+        ],
+        "projects": [
+            "User is building IRIS."
+        ],
+        "skills": [
+            "User is learning AI engineering."
+        ]
+    }
+}

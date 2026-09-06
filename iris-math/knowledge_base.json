@@ -1,0 +1,14 @@
+{
+    "preferences": [
+        "User prefers simple explanations.",
+        "User prefers practical examples."
+    ],
+    "projects": [
+        "User is building IRIS.",
+        "IRIS is an AI assistant."
+    ],
+    "skills": [
+        "User is learning Python.",
+        "User is learning AI engineering."
+    ]
+}

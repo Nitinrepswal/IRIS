@@ -825,6 +825,17 @@
             "PYTHONPATH": "${workspaceFolder}/iris-math"
          },
        "console": "integratedTerminal"
-    }
+     },
+     {
+       "name": "IRIS - Run Feedback Loop",
+       "type": "debugpy",
+       "request": "launch",
+       "program": "${workspaceFolder}/iris-math/tests/test_feedback_loop.py",
+       "cwd": "${workspaceFolder}/iris-math",
+       "env": {
+           "PYTHONPATH": "${workspaceFolder}/iris-math"
+          },
+       "console": "integratedTerminal"
+      }
     ]
 }

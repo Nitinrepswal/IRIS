@@ -880,6 +880,17 @@
             "PYTHONPATH": "${workspaceFolder}/iris-math"
          },
         "console": "integratedTerminal"
+      },
+      {
+        "name": "IRIS - Run Filesystem Intelligence",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/iris-math/tests/test_filesystem_intelligence.py",
+        "cwd": "${workspaceFolder}/iris-math",
+        "env": {
+           "PYTHONPATH": "${workspaceFolder}/iris-math"
+          },
+        "console": "integratedTerminal"
       }
     ]
 }

@@ -957,6 +957,21 @@
            "PYTHONPATH": "${workspaceFolder}/iris-math"
           },
        "console": "integratedTerminal"
+      },
+      {
+        "name": "IRIS - Database Backend",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": [
+           "tests.test_database_persistence:app",
+           "--reload"
+          ],
+        "cwd": "${workspaceFolder}/iris-math",
+        "env": {
+            "PYTHONPATH": "${workspaceFolder}/iris-math"
+         },
+       "console": "integratedTerminal"
       }
     ]
 }

@@ -1,0 +1,33 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+
+app = FastAPI(title="IRIS Backend")
+
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+@app.get("/")
+def root():
+    return {
+        "name": "IRIS",
+        "status": "running"
+    }
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy"
+    }
+
+
+@app.post("/chat")
+def chat(request: ChatRequest):
+    message = request.message
+
+    return {
+        "response": f"IRIS received: {message}"
+    }

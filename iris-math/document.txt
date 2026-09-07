@@ -1,0 +1,1 @@
+IRIS is an intelligent AI assistant. It can use tools, memory, and reasoning to help users complete tasks.

@@ -869,6 +869,17 @@
             "PYTHONPATH": "${workspaceFolder}/iris-math"
           },
        "console": "integratedTerminal"
+      },
+      {
+        "name": "IRIS - Run Agent V1",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/iris-math/tests/test_iris_agent_v1.py",
+        "cwd": "${workspaceFolder}/iris-math",
+        "env": {
+            "PYTHONPATH": "${workspaceFolder}/iris-math"
+         },
+        "console": "integratedTerminal"
       }
     ]
 }

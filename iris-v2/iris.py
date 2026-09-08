@@ -1,11 +1,11 @@
 from core.iris_core import IRISCore
-from models.test_model import TestModel
+from models.llm_model import LLMModel
 
 
 def main():
     iris = IRISCore()
 
-    model = TestModel()
+    model = LLMModel()
     iris.set_model(model)
 
     print("IRIS V2")

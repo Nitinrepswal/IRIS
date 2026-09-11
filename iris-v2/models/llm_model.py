@@ -17,3 +17,11 @@ class LLMModel:
         )
 
         return response["message"]["content"]
+
+    def chat(self, messages):
+        response = ollama.chat(
+            model=self.model,
+            messages=messages
+        )
+
+        return response["message"]["content"]

@@ -1,12 +1,10 @@
-from core.iris_core import IRISCore
 from models.llm_model import LLMModel
+from core.conversation import ConversationLoop
 
 
 def main():
-    iris = IRISCore()
-
     model = LLMModel()
-    iris.set_model(model)
+    conversation = ConversationLoop(model)
 
     print("IRIS V2")
     print("Type 'exit' to quit.\n")
@@ -18,7 +16,7 @@ def main():
             print("IRIS: Goodbye.")
             break
 
-        response = iris.process(message)
+        response = conversation.chat(message)
 
         print("IRIS:", response)
 

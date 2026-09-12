@@ -1,3 +1,4 @@
+import json
 import ollama
 
 
@@ -51,3 +52,23 @@ Your behavior:
         )
 
         return response["message"]["content"]
+
+    def structured_chat(self, messages):
+        conversation = [
+            {
+                "role": "system",
+                "content": self.system_prompt
+            }
+        ]
+
+        conversation.extend(messages)
+
+        response = ollama.chat(
+            model=self.model,
+            messages=conversation,
+            format="json"
+        )
+
+        content = response["message"]["content"]
+
+        return json.loads(content)

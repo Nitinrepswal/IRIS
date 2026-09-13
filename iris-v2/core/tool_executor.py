@@ -9,7 +9,9 @@ class ToolExecutor:
         if tool_name not in self.tools:
             return {
                 "success": False,
-                "result": f"Tool not found: {tool_name}"
+                "error": "tool_not_found",
+                "message": f"Tool not found: {tool_name}",
+                "retry": False
             }
 
         try:
@@ -17,11 +19,14 @@ class ToolExecutor:
 
             return {
                 "success": True,
-                "result": result
+                "result": result,
+                "retry": False
             }
 
         except Exception as error:
             return {
                 "success": False,
-                "result": str(error)
+                "error": "execution_error",
+                "message": str(error),
+                "retry": True
             }

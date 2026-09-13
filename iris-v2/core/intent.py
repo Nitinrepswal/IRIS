@@ -1,39 +1,54 @@
-import json
-
-
 class IntentDetector:
     def __init__(self, model):
         self.model = model
 
     def detect(self, message):
         prompt = f"""
-Determine the user's primary intent.
+You are the intent classifier for IRIS.
 
-Choose exactly one intent from:
+Choose exactly ONE intent.
+
+Allowed intents:
 - chat
 - information
 - filesystem
 - memory
 - terminal
 
-Return only a JSON object with exactly these fields:
-intent
-reason
+Rules:
 
-The intent must be one of the five allowed values.
+- "chat" = greetings, casual conversation, or conversation with IRIS.
+- "information" = asking for explanations, facts, definitions, or general knowledge.
+- "filesystem" = finding, locating, searching, reading, creating, or modifying files.
+- "memory" = asking IRIS to remember, recall, update, or forget personal information.
+- "terminal" = asking IRIS to run a command, program, or script.
 
-Do not execute anything.
-Do not invent information.
+Examples:
+
+"Hello IRIS" → chat
+"How are you?" → chat
+"What is machine learning?" → information
+"Explain recursion" → information
+"Find my resume" → filesystem
+"Open my resume" → filesystem
+"Remember that I am building IRIS" → memory
+"What do you remember about my project?" → memory
+"Run the Python script" → terminal
+"Execute this command" → terminal
+
+Return ONLY valid JSON:
+{{
+    "intent": "one of: chat, information, filesystem, memory, terminal",
+    "reason": "brief explanation"
+}}
 
 User message:
 {message}
 """
 
-        result = self.model.structured_chat([
+        return self.model.structured_chat([
             {
                 "role": "user",
                 "content": prompt
             }
         ])
-
-        return result

@@ -1,4 +1,5 @@
 import json
+
 import ollama
 
 
@@ -72,3 +73,11 @@ Your behavior:
         content = response["message"]["content"]
 
         return json.loads(content)
+
+    def embed(self, text):
+        response = ollama.embed(
+            model="nomic-embed-text",
+            input=text
+        )
+
+        return response

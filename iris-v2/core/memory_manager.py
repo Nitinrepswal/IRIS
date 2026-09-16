@@ -13,6 +13,13 @@ class MemoryManager:
 
         return False
 
+    def delete(self, memory):
+        if memory in self.memories:
+            self.memories.remove(memory)
+            return True
+
+        return False
+
     def find(self, keyword):
         results = []
 

@@ -39,7 +39,7 @@ class MemoryRetriever:
 
         return dot_product / (magnitude_a * magnitude_b)
 
-    def retrieve(self, query, top_k=3):
+    def retrieve(self, query, top_k=3, threshold=0.5):
         query_embedding = self._embed(query)
 
         results = []
@@ -53,10 +53,11 @@ class MemoryRetriever:
                 embedding
             )
 
-            results.append({
-                "memory": memory,
-                "score": score
-            })
+            if score >= threshold:
+                results.append({
+                    "memory": memory,
+                    "score": score
+                })
 
         results.sort(
             key=lambda item: item["score"],

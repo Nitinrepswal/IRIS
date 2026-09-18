@@ -1,3 +1,6 @@
+import re
+
+
 class MultiStepExecutor:
     def __init__(self, tool_layer):
         self.tool_layer = tool_layer
@@ -41,11 +44,13 @@ class MultiStepExecutor:
 
     def _prepare_tool(self, action, target):
         if action == "search":
+            query = self._extract_search_query(target)
+
             return (
                 "filesystem_search",
                 {
                     "directory": ".",
-                    "query": target
+                    "query": query
                 }
             )
 
@@ -67,3 +72,14 @@ class MultiStepExecutor:
             )
 
         return None, {}
+
+    def _extract_search_query(self, target):
+        quoted = re.search(
+            r"'([^']+)'|\"([^\"]+)\"",
+            target
+        )
+
+        if quoted:
+            return quoted.group(1) or quoted.group(2)
+
+        return target

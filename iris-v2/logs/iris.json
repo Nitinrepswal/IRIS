@@ -12,5 +12,50 @@
     "details": {
       "message": "Computer control is ready."
     }
+  },
+  {
+    "timestamp": "2026-09-19T15:22:13.935848",
+    "event": "iris_v2_started",
+    "details": {}
+  },
+  {
+    "timestamp": "2026-09-19T15:22:27.965635",
+    "event": "user_message",
+    "details": {
+      "message": "open claculator"
+    }
+  },
+  {
+    "timestamp": "2026-09-19T15:22:45.661558",
+    "event": "user_message",
+    "details": {
+      "message": "open claculator app"
+    }
+  },
+  {
+    "timestamp": "2026-09-19T15:22:57.752940",
+    "event": "user_message",
+    "details": {
+      "message": "3+4+2+7"
+    }
+  },
+  {
+    "timestamp": "2026-09-19T15:23:15.617939",
+    "event": "user_message",
+    "details": {
+      "message": "Explain what a transformer is in simple terms."
+    }
+  },
+  {
+    "timestamp": "2026-09-19T15:23:23.991183",
+    "event": "user_message",
+    "details": {
+      "message": "/bye"
+    }
+  },
+  {
+    "timestamp": "2026-09-19T15:23:27.894377",
+    "event": "iris_v2_shutdown",
+    "details": {}
   }
 ]

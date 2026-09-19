@@ -1,0 +1,16 @@
+[
+  {
+    "timestamp": "2026-09-19T15:20:18.800292",
+    "event": "system_start",
+    "details": {
+      "component": "IRIS V2"
+    }
+  },
+  {
+    "timestamp": "2026-09-19T15:20:18.800525",
+    "event": "assistant_response",
+    "details": {
+      "message": "Computer control is ready."
+    }
+  }
+]

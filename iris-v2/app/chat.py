@@ -12,11 +12,15 @@ from PySide6.QtCore import (
     Signal
 )
 
-from app.worker import IRISWorker
+from app.worker import (
+    IRISWorker,
+    VoiceWorker
+)
 
 
 class ChatWidget(QWidget):
     process_message = Signal(str)
+    start_voice = Signal()
 
     def __init__(self):
         super().__init__()
@@ -34,6 +38,10 @@ class ChatWidget(QWidget):
             "Send"
         )
 
+        self.voice_button = QPushButton(
+            "🎙️"
+        )
+
         self.send_button.clicked.connect(
             self.send_message
         )
@@ -42,10 +50,18 @@ class ChatWidget(QWidget):
             self.send_message
         )
 
+        self.voice_button.clicked.connect(
+            self.start_voice_input
+        )
+
         input_layout = QHBoxLayout()
 
         input_layout.addWidget(
             self.input
+        )
+
+        input_layout.addWidget(
+            self.voice_button
         )
 
         input_layout.addWidget(
@@ -86,6 +102,28 @@ class ChatWidget(QWidget):
 
         self.thread.start()
 
+        self.voice_thread = QThread()
+
+        self.voice_worker = VoiceWorker()
+
+        self.voice_worker.moveToThread(
+            self.voice_thread
+        )
+
+        self.start_voice.connect(
+            self.voice_worker.listen
+        )
+
+        self.voice_worker.finished.connect(
+            self.handle_voice_result
+        )
+
+        self.voice_worker.error.connect(
+            self.handle_voice_error
+        )
+
+        self.voice_thread.start()
+
     def send_message(self):
         message = self.input.text().strip()
 
@@ -102,6 +140,10 @@ class ChatWidget(QWidget):
             False
         )
 
+        self.voice_button.setEnabled(
+            False
+        )
+
         self.input.setEnabled(
             False
         )
@@ -114,9 +156,77 @@ class ChatWidget(QWidget):
             message
         )
 
-    def handle_response(self, response):
-        document = self.chat.document()
+    def start_voice_input(self):
+        self.voice_button.setEnabled(
+            False
+        )
 
+        self.send_button.setEnabled(
+            False
+        )
+
+        self.input.setEnabled(
+            False
+        )
+
+        self.chat.append(
+            "<i>IRIS is listening...</i>"
+        )
+
+        self.start_voice.emit()
+
+    def handle_voice_result(self, text):
+        self.voice_button.setEnabled(
+            True
+        )
+
+        self.send_button.setEnabled(
+            True
+        )
+
+        self.input.setEnabled(
+            True
+        )
+
+        if text:
+            self.input.setText(text)
+            self.input.setFocus()
+
+            self.chat.append(
+                f"<b>You:</b> {text}"
+            )
+
+            self.chat.append(
+                "<i>Voice input ready. Press Send.</i>"
+            )
+
+        else:
+            self.chat.append(
+                "<i>No speech detected.</i>"
+            )
+
+            self.input.setFocus()
+
+    def handle_voice_error(self, error):
+        self.voice_button.setEnabled(
+            True
+        )
+
+        self.send_button.setEnabled(
+            True
+        )
+
+        self.input.setEnabled(
+            True
+        )
+
+        self.chat.append(
+            f"<b>IRIS:</b> Voice error: {error}"
+        )
+
+        self.input.setFocus()
+
+    def handle_response(self, response):
         cursor = self.chat.textCursor()
 
         cursor.movePosition(
@@ -147,6 +257,10 @@ class ChatWidget(QWidget):
             True
         )
 
+        self.voice_button.setEnabled(
+            True
+        )
+
         self.input.setEnabled(
             True
         )
@@ -162,6 +276,10 @@ class ChatWidget(QWidget):
             True
         )
 
+        self.voice_button.setEnabled(
+            True
+        )
+
         self.input.setEnabled(
             True
         )
@@ -171,5 +289,8 @@ class ChatWidget(QWidget):
     def closeEvent(self, event):
         self.thread.quit()
         self.thread.wait()
+
+        self.voice_thread.quit()
+        self.voice_thread.wait()
 
         event.accept()

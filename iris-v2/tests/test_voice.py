@@ -5,11 +5,9 @@ def main():
     voice = VoiceInput()
 
     print("IRIS Voice Input")
-    print("Speak for 5 seconds...")
+    print("Speak now. Stop talking when finished.")
 
-    text = voice.listen(
-        seconds=5
-    )
+    text = voice.listen()
 
     if text:
         print("You said:", text)

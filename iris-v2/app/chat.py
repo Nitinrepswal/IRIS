@@ -14,13 +14,15 @@ from PySide6.QtCore import (
 
 from app.worker import (
     IRISWorker,
-    VoiceWorker
+    VoiceWorker,
+    SpeechWorker
 )
 
 
 class ChatWidget(QWidget):
     process_message = Signal(str)
     start_voice = Signal()
+    speak_response = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -124,6 +126,24 @@ class ChatWidget(QWidget):
 
         self.voice_thread.start()
 
+        self.speech_thread = QThread()
+
+        self.speech_worker = SpeechWorker()
+
+        self.speech_worker.moveToThread(
+            self.speech_thread
+        )
+
+        self.speak_response.connect(
+            self.speech_worker.speak
+        )
+
+        self.speech_worker.error.connect(
+            self.handle_speech_error
+        )
+
+        self.speech_thread.start()
+
     def send_message(self):
         message = self.input.text().strip()
 
@@ -176,38 +196,46 @@ class ChatWidget(QWidget):
         self.start_voice.emit()
 
     def handle_voice_result(self, text):
-        self.voice_button.setEnabled(
-            True
-        )
-
-        self.send_button.setEnabled(
-            True
-        )
-
-        self.input.setEnabled(
-            True
-        )
-
-        if text:
-            self.input.setText(text)
-            self.input.setFocus()
-
-            self.chat.append(
-                f"<b>You:</b> {text}"
-            )
-
-            self.chat.append(
-                "<i>Voice input ready. Press Send.</i>"
-            )
-
-        else:
+        if not text:
             self.chat.append(
                 "<i>No speech detected.</i>"
             )
 
+            self.voice_button.setEnabled(
+                True
+            )
+
+            self.send_button.setEnabled(
+                True
+            )
+
+            self.input.setEnabled(
+                True
+            )
+
             self.input.setFocus()
 
+            return
+
+        self.input.setText(text)
+
+        self.chat.append(
+            f"<b>You:</b> {text}"
+        )
+
+        self.chat.append(
+            "<i>IRIS is thinking...</i>"
+        )
+
+        self.process_message.emit(
+            text
+        )
+
     def handle_voice_error(self, error):
+        self.chat.append(
+            f"<b>IRIS:</b> Voice error: {error}"
+        )
+
         self.voice_button.setEnabled(
             True
         )
@@ -218,10 +246,6 @@ class ChatWidget(QWidget):
 
         self.input.setEnabled(
             True
-        )
-
-        self.chat.append(
-            f"<b>IRIS:</b> Voice error: {error}"
         )
 
         self.input.setFocus()
@@ -251,6 +275,10 @@ class ChatWidget(QWidget):
 
         self.chat.append(
             f"<b>IRIS:</b> {response}"
+        )
+
+        self.speak_response.emit(
+            response
         )
 
         self.send_button.setEnabled(
@@ -286,11 +314,19 @@ class ChatWidget(QWidget):
 
         self.input.setFocus()
 
+    def handle_speech_error(self, error):
+        self.chat.append(
+            f"<b>IRIS:</b> Voice output error: {error}"
+        )
+
     def closeEvent(self, event):
         self.thread.quit()
         self.thread.wait()
 
         self.voice_thread.quit()
         self.voice_thread.wait()
+
+        self.speech_thread.quit()
+        self.speech_thread.wait()
 
         event.accept()

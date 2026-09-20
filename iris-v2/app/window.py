@@ -1,10 +1,12 @@
 from PySide6.QtWidgets import (
     QMainWindow,
-    QLabel,
+    QWidget,
     QVBoxLayout,
-    QWidget
+    QLabel
 )
 from PySide6.QtCore import Qt
+
+from app.chat import ChatWidget
 
 
 class IRISWindow(QMainWindow):
@@ -15,20 +17,26 @@ class IRISWindow(QMainWindow):
         self.resize(900, 600)
 
         central_widget = QWidget()
+
         layout = QVBoxLayout()
 
         title = QLabel("IRIS")
-        title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(
+            Qt.AlignCenter
+        )
 
         subtitle = QLabel(
             "Your AI assistant"
         )
-        subtitle.setAlignment(Qt.AlignCenter)
+        subtitle.setAlignment(
+            Qt.AlignCenter
+        )
 
-        layout.addStretch()
+        chat = ChatWidget()
+
         layout.addWidget(title)
         layout.addWidget(subtitle)
-        layout.addStretch()
+        layout.addWidget(chat)
 
         central_widget.setLayout(layout)
 

@@ -36,10 +36,14 @@ class ChatWidget(QWidget):
         )
 
         self.send_button = QPushButton("Send")
-        self.send_button.setToolTip("Send message")
+        self.send_button.setToolTip(
+            "Send message"
+        )
 
         self.voice_button = QPushButton("🎙️")
-        self.voice_button.setToolTip("Talk to IRIS")
+        self.voice_button.setToolTip(
+            "Talk to IRIS"
+        )
 
         self.send_button.clicked.connect(
             self.send_message
@@ -57,8 +61,12 @@ class ChatWidget(QWidget):
         input_layout.setSpacing(8)
 
         input_layout.addWidget(self.input)
-        input_layout.addWidget(self.voice_button)
-        input_layout.addWidget(self.send_button)
+        input_layout.addWidget(
+            self.voice_button
+        )
+        input_layout.addWidget(
+            self.send_button
+        )
 
         layout = QVBoxLayout()
         layout.setSpacing(10)
@@ -68,10 +76,17 @@ class ChatWidget(QWidget):
 
         self.setLayout(layout)
 
+        self.chat.append(
+            "<b>IRIS:</b> Hello! I'm IRIS. "
+            "How can I help you?"
+        )
+
         self.thread = QThread()
         self.worker = IRISWorker()
 
-        self.worker.moveToThread(self.thread)
+        self.worker.moveToThread(
+            self.thread
+        )
 
         self.process_message.connect(
             self.worker.process
@@ -145,7 +160,9 @@ class ChatWidget(QWidget):
             "<i>IRIS is thinking...</i>"
         )
 
-        self.process_message.emit(message)
+        self.process_message.emit(
+            message
+        )
 
     def start_voice_input(self):
         self.voice_button.setEnabled(False)
@@ -215,7 +232,9 @@ class ChatWidget(QWidget):
             f"<b>IRIS:</b> {response}"
         )
 
-        self.speak_response.emit(response)
+        self.speak_response.emit(
+            response
+        )
 
         self.send_button.setEnabled(True)
         self.voice_button.setEnabled(True)

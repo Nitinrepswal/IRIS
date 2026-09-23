@@ -32,14 +32,24 @@ class VoiceWorker(QObject):
     def __init__(self):
         super().__init__()
         self.voice = VoiceInput()
+        self.running = True
 
     @Slot()
     def listen(self):
+        if not self.running:
+            return
+
         try:
             text = self.voice.listen()
-            self.finished.emit(text)
+            if self.running:
+                self.finished.emit(text)
         except Exception as error:
-            self.error.emit(str(error))
+            if self.running:
+                self.error.emit(str(error))
+
+    @Slot()
+    def stop(self):
+        self.running = False
 
 
 class SpeechWorker(QObject):
@@ -49,11 +59,23 @@ class SpeechWorker(QObject):
     def __init__(self):
         super().__init__()
         self.voice = VoiceOutput()
+        self.running = True
 
     @Slot(str)
     def speak(self, text):
+        if not self.running:
+            return
+
         try:
             self.voice.speak(text)
-            self.finished.emit()
+
+            if self.running:
+                self.finished.emit()
+
         except Exception as error:
-            self.error.emit(str(error))
+            if self.running:
+                self.error.emit(str(error))
+
+    @Slot()
+    def stop(self):
+        self.running = False

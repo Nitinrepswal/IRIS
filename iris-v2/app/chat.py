@@ -22,10 +22,14 @@ from app.worker import (
 class ChatWidget(QWidget):
     process_message = Signal(str)
     start_voice = Signal()
+    stop_voice = Signal()
+    stop_speech = Signal()
     speak_response = Signal(str)
 
     def __init__(self):
         super().__init__()
+
+        self.closing = False
 
         self.chat = QTextEdit()
         self.chat.setReadOnly(True)
@@ -61,12 +65,8 @@ class ChatWidget(QWidget):
         input_layout.setSpacing(8)
 
         input_layout.addWidget(self.input)
-        input_layout.addWidget(
-            self.voice_button
-        )
-        input_layout.addWidget(
-            self.send_button
-        )
+        input_layout.addWidget(self.voice_button)
+        input_layout.addWidget(self.send_button)
 
         layout = QVBoxLayout()
         layout.setSpacing(10)
@@ -113,6 +113,10 @@ class ChatWidget(QWidget):
             self.voice_worker.listen
         )
 
+        self.stop_voice.connect(
+            self.voice_worker.stop
+        )
+
         self.voice_worker.finished.connect(
             self.handle_voice_result
         )
@@ -134,6 +138,10 @@ class ChatWidget(QWidget):
             self.speech_worker.speak
         )
 
+        self.stop_speech.connect(
+            self.speech_worker.stop
+        )
+
         self.speech_worker.error.connect(
             self.handle_speech_error
         )
@@ -141,6 +149,9 @@ class ChatWidget(QWidget):
         self.speech_thread.start()
 
     def send_message(self):
+        if self.closing:
+            return
+
         message = self.input.text().strip()
 
         if not message:
@@ -165,6 +176,9 @@ class ChatWidget(QWidget):
         )
 
     def start_voice_input(self):
+        if self.closing:
+            return
+
         self.voice_button.setEnabled(False)
         self.send_button.setEnabled(False)
         self.input.setEnabled(False)
@@ -176,6 +190,9 @@ class ChatWidget(QWidget):
         self.start_voice.emit()
 
     def handle_voice_result(self, text):
+        if self.closing:
+            return
+
         if not text:
             self.chat.append(
                 "<i>No speech detected.</i>"
@@ -201,6 +218,9 @@ class ChatWidget(QWidget):
         self.process_message.emit(text)
 
     def handle_voice_error(self, error):
+        if self.closing:
+            return
+
         self.chat.append(
             f"<b>IRIS:</b> Voice error: {error}"
         )
@@ -211,6 +231,9 @@ class ChatWidget(QWidget):
         self.input.setFocus()
 
     def handle_response(self, response):
+        if self.closing:
+            return
+
         cursor = self.chat.textCursor()
 
         cursor.movePosition(
@@ -232,9 +255,7 @@ class ChatWidget(QWidget):
             f"<b>IRIS:</b> {response}"
         )
 
-        self.speak_response.emit(
-            response
-        )
+        self.speak_response.emit(response)
 
         self.send_button.setEnabled(True)
         self.voice_button.setEnabled(True)
@@ -242,6 +263,9 @@ class ChatWidget(QWidget):
         self.input.setFocus()
 
     def handle_error(self, error):
+        if self.closing:
+            return
+
         self.chat.append(
             f"<b>IRIS:</b> Error: {error}"
         )
@@ -252,18 +276,37 @@ class ChatWidget(QWidget):
         self.input.setFocus()
 
     def handle_speech_error(self, error):
+        if self.closing:
+            return
+
         self.chat.append(
             f"<b>IRIS:</b> Voice output error: {error}"
         )
 
     def closeEvent(self, event):
+        self.closing = True
+
+        self.send_button.setEnabled(False)
+        self.voice_button.setEnabled(False)
+        self.input.setEnabled(False)
+
+        self.stop_voice.emit()
+        self.stop_speech.emit()
+
         self.thread.quit()
-        self.thread.wait()
-
         self.voice_thread.quit()
-        self.voice_thread.wait()
-
         self.speech_thread.quit()
+
+        self.thread.wait()
+        self.voice_thread.wait()
         self.speech_thread.wait()
+
+        self.worker.deleteLater()
+        self.voice_worker.deleteLater()
+        self.speech_worker.deleteLater()
+
+        self.thread.deleteLater()
+        self.voice_thread.deleteLater()
+        self.speech_thread.deleteLater()
 
         event.accept()

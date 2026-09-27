@@ -14,7 +14,7 @@ class IRISWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("IRIS")
+        self.setWindowTitle("IRIS V2.1")
         self.resize(1000, 700)
         self.setMinimumSize(800, 550)
 
@@ -28,6 +28,10 @@ class IRISWindow(QMainWindow):
         title.setAlignment(Qt.AlignCenter)
         title.setObjectName("title")
 
+        version = QLabel("V2.1")
+        version.setAlignment(Qt.AlignCenter)
+        version.setObjectName("version")
+
         subtitle = QLabel("Your AI assistant")
         subtitle.setAlignment(Qt.AlignCenter)
         subtitle.setObjectName("subtitle")
@@ -39,6 +43,7 @@ class IRISWindow(QMainWindow):
         chat = ChatWidget()
 
         layout.addWidget(title)
+        layout.addWidget(version)
         layout.addWidget(subtitle)
         layout.addWidget(status)
         layout.addSpacing(12)
@@ -63,6 +68,11 @@ class IRISWindow(QMainWindow):
                 font-weight: bold;
                 color: #ffffff;
                 padding-top: 4px;
+            }
+
+            QLabel#version {
+                font-size: 12px;
+                color: #71717a;
             }
 
             QLabel#subtitle {

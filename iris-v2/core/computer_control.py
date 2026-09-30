@@ -1,3 +1,5 @@
+import subprocess
+
 from tools.application import ApplicationTool
 from tools.system import SystemTool
 from tools.browser import BrowserTool
@@ -19,3 +21,25 @@ class ComputerControl:
 
     def open_webpage(self, url):
         return self.browser.execute(url)
+
+    def launch_webpage(self, url):
+        result = subprocess.run(
+            [
+                "open",
+                url
+            ],
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode != 0:
+            return {
+                "success": False,
+                "message": result.stderr.strip()
+            }
+
+        return {
+            "success": True,
+            "url": url,
+            "message": f"Opened {url}"
+        }

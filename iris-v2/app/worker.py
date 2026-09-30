@@ -5,6 +5,7 @@ from core.app_control import AppControl
 from core.file_control import FileControl
 from core.web_control import WebControl
 from core.system_control import SystemControl
+from core.permission_control import PermissionControl
 from models.llm_model import LLMModel
 from app.voice import VoiceInput
 from app.voice_output import VoiceOutput
@@ -13,6 +14,7 @@ from app.voice_output import VoiceOutput
 class IRISWorker(QObject):
     finished = Signal(str)
     error = Signal(str)
+    permission_required = Signal(str, str)
 
     def __init__(self):
         super().__init__()
@@ -26,9 +28,57 @@ class IRISWorker(QObject):
         self.file_control = FileControl()
         self.web_control = WebControl()
         self.system_control = SystemControl()
+        self.permission_control = PermissionControl()
+
+    def detect_action(self, message):
+        if self.app_control.detect_application(
+            message
+        ):
+            return "application"
+
+        text = message.lower().strip()
+
+        if (
+            text.startswith("find file ")
+            or text.startswith("read file ")
+            or text.startswith("create file ")
+        ):
+            return "filesystem"
+
+        return None
 
     @Slot(str)
     def process(self, message):
+        try:
+            action = self.detect_action(
+                message
+            )
+
+            if action is not None:
+                if not self.permission_control.is_allowed(
+                    action
+                ):
+                    self.finished.emit(
+                        f"Permission denied for {action}."
+                    )
+                    return
+
+                if self.permission_control.requires_confirmation(
+                    action
+                ):
+                    self.permission_required.emit(
+                        action,
+                        message
+                    )
+                    return
+
+            self.execute_message(message)
+
+        except Exception as error:
+            self.error.emit(str(error))
+
+    @Slot(str)
+    def execute_message(self, message):
         try:
             app_response = self.app_control.execute(
                 message

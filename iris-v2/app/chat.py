@@ -4,7 +4,8 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QTextEdit,
     QLineEdit,
-    QPushButton
+    QPushButton,
+    QMessageBox
 )
 
 from PySide6.QtCore import (
@@ -25,6 +26,7 @@ class ChatWidget(QWidget):
     stop_voice = Signal()
     stop_speech = Signal()
     speak_response = Signal(str)
+    execute_approved = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -92,12 +94,20 @@ class ChatWidget(QWidget):
             self.worker.process
         )
 
+        self.execute_approved.connect(
+            self.worker.execute_message
+        )
+
         self.worker.finished.connect(
             self.handle_response
         )
 
         self.worker.error.connect(
             self.handle_error
+        )
+
+        self.worker.permission_required.connect(
+            self.handle_permission_request
         )
 
         self.thread.start()
@@ -229,6 +239,60 @@ class ChatWidget(QWidget):
         self.send_button.setEnabled(True)
         self.input.setEnabled(True)
         self.input.setFocus()
+
+    def handle_permission_request(
+        self,
+        action,
+        message
+    ):
+        if self.closing:
+            return
+
+        box = QMessageBox(self)
+
+        box.setWindowTitle(
+            "IRIS Permission Request"
+        )
+
+        box.setText(
+            f"IRIS wants to perform a "
+            f"'{action}' action."
+        )
+
+        box.setInformativeText(
+            f"Request:\n{message}\n\n"
+            "Do you want to allow this action?"
+        )
+
+        allow_button = box.addButton(
+            "Allow",
+            QMessageBox.AcceptRole
+        )
+
+        box.addButton(
+            "Deny",
+            QMessageBox.RejectRole
+        )
+
+        box.exec()
+
+        if box.clickedButton() == allow_button:
+            self.chat.append(
+                "<i>Permission granted.</i>"
+            )
+
+            self.execute_approved.emit(
+                message
+            )
+
+        else:
+            self.chat.append(
+                "<i>Permission denied.</i>"
+            )
+
+            self.handle_response(
+                "I did not perform that action."
+            )
 
     def handle_response(self, response):
         if self.closing:

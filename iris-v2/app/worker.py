@@ -4,6 +4,7 @@ from core.iris_core import IRISCore
 from core.app_control import AppControl
 from core.file_control import FileControl
 from core.web_control import WebControl
+from core.system_control import SystemControl
 from models.llm_model import LLMModel
 from app.voice import VoiceInput
 from app.voice_output import VoiceOutput
@@ -24,6 +25,7 @@ class IRISWorker(QObject):
         self.app_control = AppControl()
         self.file_control = FileControl()
         self.web_control = WebControl()
+        self.system_control = SystemControl()
 
     @Slot(str)
     def process(self, message):
@@ -50,6 +52,14 @@ class IRISWorker(QObject):
 
             if web_response is not None:
                 self.finished.emit(web_response)
+                return
+
+            system_response = self.system_control.execute(
+                message
+            )
+
+            if system_response is not None:
+                self.finished.emit(system_response)
                 return
 
             response = self.core.process(

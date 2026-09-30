@@ -34,3 +34,18 @@ class ToolLayer:
 
     def list_tools(self):
         return self.registry.list_tools()
+
+    def tool_names(self):
+        return [
+            tool.name
+            for tool in self.registry.list_tools()
+        ]
+
+    def tool_status(self):
+        return {
+            tool.name: {
+                "available": True,
+                "description": tool.description
+            }
+            for tool in self.registry.list_tools()
+        }

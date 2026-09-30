@@ -2,6 +2,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 
 from core.iris_core import IRISCore
 from core.app_control import AppControl
+from core.file_control import FileControl
 from models.llm_model import LLMModel
 from app.voice import VoiceInput
 from app.voice_output import VoiceOutput
@@ -20,6 +21,7 @@ class IRISWorker(QObject):
         self.core.set_model(self.model)
 
         self.app_control = AppControl()
+        self.file_control = FileControl()
 
     @Slot(str)
     def process(self, message):
@@ -30,6 +32,14 @@ class IRISWorker(QObject):
 
             if app_response is not None:
                 self.finished.emit(app_response)
+                return
+
+            file_response = self.file_control.execute(
+                message
+            )
+
+            if file_response is not None:
+                self.finished.emit(file_response)
                 return
 
             response = self.core.process(

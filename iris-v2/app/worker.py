@@ -1,10 +1,7 @@
 from PySide6.QtCore import QObject, Signal, Slot
 
 from core.iris_core import IRISCore
-from core.app_control import AppControl
-from core.file_control import FileControl
-from core.web_control import WebControl
-from core.system_control import SystemControl
+from core.tool_manager import ToolManager
 from core.permission_control import PermissionControl
 from models.llm_model import LLMModel
 from app.voice import VoiceInput
@@ -24,19 +21,14 @@ class IRISWorker(QObject):
         self.core = IRISCore()
         self.core.set_model(self.model)
 
-        self.app_control = AppControl()
-        self.file_control = FileControl()
-        self.web_control = WebControl()
-        self.system_control = SystemControl()
+        self.tool_manager = ToolManager()
         self.permission_control = PermissionControl()
 
     def detect_action(self, message):
-        if self.app_control.detect_application(
-            message
-        ):
-            return "application"
-
         text = message.lower().strip()
+
+        if self.tool_manager.app_control.detect_application(message):
+            return "application"
 
         if (
             text.startswith("find file ")
@@ -50,26 +42,17 @@ class IRISWorker(QObject):
     @Slot(str)
     def process(self, message):
         try:
-            action = self.detect_action(
-                message
-            )
+            action = self.detect_action(message)
 
             if action is not None:
-                if not self.permission_control.is_allowed(
-                    action
-                ):
+                if not self.permission_control.is_allowed(action):
                     self.finished.emit(
                         f"Permission denied for {action}."
                     )
                     return
 
-                if self.permission_control.requires_confirmation(
-                    action
-                ):
-                    self.permission_required.emit(
-                        action,
-                        message
-                    )
+                if self.permission_control.requires_confirmation(action):
+                    self.permission_required.emit(action, message)
                     return
 
             self.execute_message(message)
@@ -80,42 +63,13 @@ class IRISWorker(QObject):
     @Slot(str)
     def execute_message(self, message):
         try:
-            app_response = self.app_control.execute(
-                message
-            )
+            tool_response = self.tool_manager.execute(message)
 
-            if app_response is not None:
-                self.finished.emit(app_response)
+            if tool_response is not None:
+                self.finished.emit(tool_response)
                 return
 
-            file_response = self.file_control.execute(
-                message
-            )
-
-            if file_response is not None:
-                self.finished.emit(file_response)
-                return
-
-            web_response = self.web_control.execute(
-                message
-            )
-
-            if web_response is not None:
-                self.finished.emit(web_response)
-                return
-
-            system_response = self.system_control.execute(
-                message
-            )
-
-            if system_response is not None:
-                self.finished.emit(system_response)
-                return
-
-            response = self.core.process(
-                message
-            )
-
+            response = self.core.process(message)
             self.finished.emit(response)
 
         except Exception as error:
@@ -133,10 +87,8 @@ class VoiceWorker(QObject):
 
     @Slot()
     def listen(self):
-        if not self.running:
-            return
-
         try:
+            self.running = True
             text = self.voice.listen()
 
             if self.running:
@@ -152,7 +104,6 @@ class VoiceWorker(QObject):
 
 
 class SpeechWorker(QObject):
-    finished = Signal()
     error = Signal(str)
 
     def __init__(self):
@@ -162,14 +113,13 @@ class SpeechWorker(QObject):
 
     @Slot(str)
     def speak(self, text):
-        if not self.running:
-            return
-
         try:
-            self.voice.speak(text)
+            self.running = True
 
-            if self.running:
-                self.finished.emit()
+            if not self.running:
+                return
+
+            self.voice.speak(text)
 
         except Exception as error:
             if self.running:

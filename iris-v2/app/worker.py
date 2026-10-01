@@ -4,6 +4,7 @@ from core.iris_core import IRISCore
 from core.tool_manager import ToolManager
 from core.permission_control import PermissionControl
 from models.llm_model import LLMModel
+from memory.memory_system import MemorySystem
 from app.voice import VoiceInput
 from app.voice_output import VoiceOutput
 
@@ -20,6 +21,9 @@ class IRISWorker(QObject):
 
         self.core = IRISCore()
         self.core.set_model(self.model)
+
+        self.memory = MemorySystem()
+        self.core.set_memory(self.memory)
 
         self.tool_manager = ToolManager()
         self.permission_control = PermissionControl()
@@ -52,7 +56,10 @@ class IRISWorker(QObject):
                     return
 
                 if self.permission_control.requires_confirmation(action):
-                    self.permission_required.emit(action, message)
+                    self.permission_required.emit(
+                        action,
+                        message
+                    )
                     return
 
             self.execute_message(message)

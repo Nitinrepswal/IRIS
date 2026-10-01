@@ -59,3 +59,14 @@ class PersonalProfile:
 
     def get_profile(self):
         return self.profile.copy()
+
+    def clear(self):
+        self.profile = {
+            "name": "",
+            "preferences": {},
+            "interests": [],
+            "notes": {}
+        }
+
+        if os.path.exists(self.path):
+            os.remove(self.path)

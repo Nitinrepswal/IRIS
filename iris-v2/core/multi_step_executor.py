@@ -1,6 +1,3 @@
-import re
-
-
 class MultiStepExecutor:
     def __init__(self, tool_layer):
         self.tool_layer = tool_layer
@@ -11,8 +8,9 @@ class MultiStepExecutor:
         for task in tasks:
             action = task["action"]
             target = task["target"]
+            tool_name = task.get("tool")
 
-            tool_name, arguments = self._prepare_tool(
+            arguments = self._prepare_arguments(
                 action,
                 target
             )
@@ -21,7 +19,7 @@ class MultiStepExecutor:
                 results.append({
                     "step": task["step"],
                     "success": False,
-                    "message": f"Unsupported action: {action}"
+                    "message": "No tool selected for task."
                 })
                 continue
 
@@ -34,6 +32,7 @@ class MultiStepExecutor:
                 "step": task["step"],
                 "action": action,
                 "target": target,
+                "tool": tool_name,
                 "result": result
             })
 
@@ -42,44 +41,30 @@ class MultiStepExecutor:
 
         return results
 
-    def _prepare_tool(self, action, target):
+    def _prepare_arguments(self, action, target):
         if action == "search":
-            query = self._extract_search_query(target)
-
-            return (
-                "filesystem_search",
-                {
-                    "directory": ".",
-                    "query": query
-                }
-            )
+            return {
+                "directory": ".",
+                "query": target
+            }
 
         if action == "read":
-            return (
-                "file_reader",
-                {
-                    "path": target
-                }
-            )
+            return {
+                "path": target
+            }
 
         if action == "create":
-            return (
-                "file_editor",
-                {
-                    "path": target,
-                    "content": ""
-                }
-            )
+            return {
+                "path": target,
+                "content": ""
+            }
 
-        return None, {}
+        if action == "edit":
+            return {
+                "path": target,
+                "content": ""
+            }
 
-    def _extract_search_query(self, target):
-        quoted = re.search(
-            r"'([^']+)'|\"([^\"]+)\"",
-            target
-        )
-
-        if quoted:
-            return quoted.group(1) or quoted.group(2)
-
-        return target
+        return {
+            "input": target
+        }

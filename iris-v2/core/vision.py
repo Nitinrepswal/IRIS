@@ -7,7 +7,7 @@ from PIL import Image
 class VisionEngine:
     def __init__(self):
         self.model = "granite3.2-vision:2b"
-        self.max_size = (640, 400)
+        self.max_size = (256, 160)
 
     def prepare_image(self, image_path):
         image = Image.open(image_path)
@@ -16,18 +16,22 @@ class VisionEngine:
             return image_path
 
         base, extension = os.path.splitext(image_path)
-        resized_path = f"{base}_vision{extension}"
+        resized_path = f"{base}_ultrafast{extension}"
 
         image.thumbnail(self.max_size)
-        image.save(resized_path)
+
+        image.save(
+            resized_path,
+            optimize=True
+        )
 
         return resized_path
 
     def analyze(self, image_path, prompt=None):
         if prompt is None:
             prompt = (
-                "Briefly identify the main application "
-                "and important visible UI elements."
+                "Identify the main app and key UI elements "
+                "in one or two short sentences."
             )
 
         prepared_image = self.prepare_image(image_path)
@@ -35,7 +39,9 @@ class VisionEngine:
         response = ollama.chat(
             model=self.model,
             options={
-                "num_predict": 80
+                "num_predict": 24,
+                "num_ctx": 2048,
+                "temperature": 0
             },
             messages=[
                 {
@@ -50,7 +56,10 @@ class VisionEngine:
 
     def execute(self, image_path, prompt=None):
         try:
-            result = self.analyze(image_path, prompt)
+            result = self.analyze(
+                image_path,
+                prompt
+            )
 
             return {
                 "success": True,

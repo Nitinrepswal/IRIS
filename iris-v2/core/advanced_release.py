@@ -40,7 +40,8 @@ class AdvancedRelease:
 
         return {
             "success": result["success"],
-            "time": round(elapsed, 2)
+            "time": round(elapsed, 2),
+            "under_10_seconds": elapsed < 10
         }
 
     def test_web(self):
@@ -86,8 +87,19 @@ class AdvancedRelease:
 
         total = len(tests)
 
+        performance_ok = (
+            tests["vision"].get(
+                "under_10_seconds",
+                False
+            )
+        )
+
         tests["passed"] = passed
         tests["total"] = total
-        tests["release_ready"] = passed == total
+        tests["performance_ok"] = performance_ok
+        tests["release_ready"] = (
+            passed == total
+            and performance_ok
+        )
 
         return tests

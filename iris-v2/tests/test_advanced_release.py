@@ -27,6 +27,11 @@ def main():
     )
 
     print(
+        "Performance OK:",
+        results["performance_ok"]
+    )
+
+    print(
         "Release ready:",
         results["release_ready"]
     )

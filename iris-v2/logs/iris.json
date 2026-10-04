@@ -57,5 +57,22 @@
     "timestamp": "2026-09-19T15:23:27.894377",
     "event": "iris_v2_shutdown",
     "details": {}
+  },
+  {
+    "timestamp": "2026-10-04T09:40:11.706989",
+    "event": "iris_v2_started",
+    "details": {}
+  },
+  {
+    "timestamp": "2026-10-04T09:40:29.472905",
+    "event": "user_message",
+    "details": {
+      "message": "Hello IRIS"
+    }
+  },
+  {
+    "timestamp": "2026-10-04T10:02:56.091227",
+    "event": "iris_v2_started",
+    "details": {}
   }
 ]

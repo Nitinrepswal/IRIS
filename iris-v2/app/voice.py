@@ -38,7 +38,7 @@ class VoiceInput:
 
             calibration_blocks = []
 
-            for _ in range(10):
+            for _ in range(5):
                 data, _ = stream.read(block_size)
                 calibration_blocks.append(data.copy())
 
@@ -52,8 +52,8 @@ class VoiceInput:
             ).mean()
 
             threshold = max(
-                noise_level * 2.5,
-                300
+                noise_level * 1.5,
+                250
             )
 
             started = False
@@ -74,15 +74,14 @@ class VoiceInput:
                 if volume > threshold:
                     started = True
                     silent_count = 0
+                    blocks.append(block)
 
                 elif started:
+                    blocks.append(block)
                     silent_count += 1
 
                     if silent_count >= silence_blocks:
                         break
-
-                if started:
-                    blocks.append(block)
 
         if not started or not blocks:
             print("No speech detected.")

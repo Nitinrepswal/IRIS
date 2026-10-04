@@ -2,7 +2,6 @@ class ConfirmationSystem:
     def __init__(self):
         self.risky_actions = {
             "terminal",
-            "application",
             "filesystem"
         }
 

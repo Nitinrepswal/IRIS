@@ -2,15 +2,18 @@ from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
-    QTextEdit,
     QLineEdit,
     QPushButton,
-    QMessageBox
+    QMessageBox,
+    QLabel,
+    QFrame,
+    QScrollArea
 )
 
 from PySide6.QtCore import (
     QThread,
-    Signal
+    Signal,
+    Qt
 )
 
 from app.worker import (
@@ -32,23 +35,159 @@ class ChatWidget(QWidget):
         super().__init__()
 
         self.closing = False
+        self.audio_enabled = True
+        self.thinking_widget = None
 
-        self.chat = QTextEdit()
-        self.chat.setReadOnly(True)
+        self.create_chat_area()
+        self.create_composer()
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(10)
+
+        layout.addWidget(
+            self.scroll_area,
+            1
+        )
+
+        layout.addWidget(
+            self.composer
+        )
+
+        self.setLayout(layout)
+
+        self.create_workers()
+
+        self.add_message(
+            "IRIS",
+            "Hello! I'm IRIS. 👋\n"
+            "Your personal AI assistant. "
+            "How can I help you today?"
+        )
+
+    def create_chat_area(self):
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setFrameShape(QScrollArea.NoFrame)
+
+        self.scroll_area.setStyleSheet("""
+            QScrollArea {
+                background: #0F1117;
+                border: none;
+            }
+
+            QScrollArea > QWidget {
+                background: #0F1117;
+            }
+
+            QScrollBar:vertical {
+                background: #0F1117;
+                width: 7px;
+                margin: 4px 2px;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #303747;
+                border-radius: 4px;
+                min-height: 35px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background: #475569;
+            }
+
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                height: 0;
+            }
+        """)
+
+        self.chat_container = QWidget()
+        self.chat_container.setStyleSheet(
+            "background: #0F1117;"
+        )
+
+        self.chat_layout = QVBoxLayout()
+
+        self.chat_layout.setContentsMargins(
+            18,
+            18,
+            18,
+            18
+        )
+
+        self.chat_layout.setSpacing(20)
+
+        self.chat_layout.addStretch()
+
+        self.chat_container.setLayout(
+            self.chat_layout
+        )
+
+        self.scroll_area.setWidget(
+            self.chat_container
+        )
+
+    def create_composer(self):
+        self.composer = QFrame()
+        self.composer.setObjectName("composer")
+
+        layout = QHBoxLayout()
+
+        layout.setContentsMargins(
+            7,
+            7,
+            7,
+            7
+        )
+
+        layout.setSpacing(6)
+
+        self.attach_button = QPushButton("+")
+        self.attach_button.setObjectName(
+            "composerSecondary"
+        )
+        self.attach_button.setFixedSize(
+            42,
+            42
+        )
 
         self.input = QLineEdit()
         self.input.setPlaceholderText(
             "Ask IRIS anything..."
         )
 
-        self.send_button = QPushButton("Send")
-        self.send_button.setToolTip(
-            "Send message"
+        self.voice_button = QPushButton("🎙")
+        self.voice_button.setObjectName(
+            "composerSecondary"
         )
-
-        self.voice_button = QPushButton("🎙️")
+        self.voice_button.setFixedSize(
+            46,
+            42
+        )
         self.voice_button.setToolTip(
             "Talk to IRIS"
+        )
+
+        self.audio_button = QPushButton("🔊")
+        self.audio_button.setObjectName(
+            "composerSecondary"
+        )
+        self.audio_button.setFixedSize(
+            46,
+            42
+        )
+        self.audio_button.setToolTip(
+            "Audio response: ON"
+        )
+
+        self.send_button = QPushButton("➤")
+        self.send_button.setObjectName(
+            "sendButton"
+        )
+        self.send_button.setFixedSize(
+            46,
+            42
         )
 
         self.send_button.clicked.connect(
@@ -63,26 +202,34 @@ class ChatWidget(QWidget):
             self.start_voice_input
         )
 
-        input_layout = QHBoxLayout()
-        input_layout.setSpacing(8)
-
-        input_layout.addWidget(self.input)
-        input_layout.addWidget(self.voice_button)
-        input_layout.addWidget(self.send_button)
-
-        layout = QVBoxLayout()
-        layout.setSpacing(10)
-
-        layout.addWidget(self.chat)
-        layout.addLayout(input_layout)
-
-        self.setLayout(layout)
-
-        self.chat.append(
-            "<b>IRIS:</b> Hello! I'm IRIS. "
-            "How can I help you?"
+        self.audio_button.clicked.connect(
+            self.toggle_audio
         )
 
+        layout.addWidget(
+            self.attach_button
+        )
+
+        layout.addWidget(
+            self.input,
+            1
+        )
+
+        layout.addWidget(
+            self.voice_button
+        )
+
+        layout.addWidget(
+            self.audio_button
+        )
+
+        layout.addWidget(
+            self.send_button
+        )
+
+        self.composer.setLayout(layout)
+
+    def create_workers(self):
         self.thread = QThread()
         self.worker = IRISWorker()
 
@@ -158,6 +305,264 @@ class ChatWidget(QWidget):
 
         self.speech_thread.start()
 
+    def add_message(self, sender, message):
+        row = QWidget()
+        row.setStyleSheet(
+            "background: transparent;"
+        )
+
+        row_layout = QHBoxLayout()
+
+        row_layout.setContentsMargins(
+            0,
+            0,
+            0,
+            0
+        )
+
+        row_layout.setSpacing(9)
+
+        bubble = QFrame()
+        bubble.setMaximumWidth(720)
+
+        bubble_layout = QVBoxLayout()
+
+        bubble_layout.setContentsMargins(
+            15,
+            11,
+            15,
+            11
+        )
+
+        bubble_layout.setSpacing(3)
+
+        sender_label = QLabel(sender)
+        sender_label.setObjectName(
+            "messageSender"
+        )
+
+        message_label = QLabel(message)
+        message_label.setObjectName(
+            "messageText"
+        )
+
+        message_label.setWordWrap(True)
+
+        message_label.setTextInteractionFlags(
+            Qt.TextSelectableByMouse
+        )
+
+        bubble_layout.addWidget(
+            sender_label
+        )
+
+        bubble_layout.addWidget(
+            message_label
+        )
+
+        bubble.setLayout(
+            bubble_layout
+        )
+
+        if sender == "You":
+            bubble.setObjectName(
+                "userBubble"
+            )
+
+            avatar = QFrame()
+            avatar.setObjectName(
+                "userAvatar"
+            )
+
+            avatar.setFixedSize(
+                32,
+                32
+            )
+
+            avatar_layout = QVBoxLayout()
+            avatar_layout.setContentsMargins(
+                0,
+                0,
+                0,
+                0
+            )
+
+            avatar_text = QLabel("●")
+            avatar_text.setObjectName(
+                "userAvatarText"
+            )
+
+            avatar_text.setAlignment(
+                Qt.AlignCenter
+            )
+
+            avatar_layout.addWidget(
+                avatar_text
+            )
+
+            avatar.setLayout(
+                avatar_layout
+            )
+
+            row_layout.addStretch()
+
+            row_layout.addWidget(
+                bubble
+            )
+
+            row_layout.addWidget(
+                avatar,
+                alignment=Qt.AlignBottom
+            )
+
+        else:
+            bubble.setObjectName(
+                "irisBubble"
+            )
+
+            avatar = QFrame()
+            avatar.setObjectName(
+                "avatar"
+            )
+
+            avatar.setFixedSize(
+                32,
+                32
+            )
+
+            avatar_layout = QVBoxLayout()
+            avatar_layout.setContentsMargins(
+                0,
+                0,
+                0,
+                0
+            )
+
+            avatar_text = QLabel("✦")
+            avatar_text.setObjectName(
+                "avatarText"
+            )
+
+            avatar_text.setAlignment(
+                Qt.AlignCenter
+            )
+
+            avatar_layout.addWidget(
+                avatar_text
+            )
+
+            avatar.setLayout(
+                avatar_layout
+            )
+
+            row_layout.addWidget(
+                avatar,
+                alignment=Qt.AlignBottom
+            )
+
+            row_layout.addWidget(
+                bubble
+            )
+
+            row_layout.addStretch()
+
+        row.setLayout(
+            row_layout
+        )
+
+        self.chat_layout.insertWidget(
+            self.chat_layout.count() - 1,
+            row
+        )
+
+        self.scroll_to_bottom()
+
+    def add_thinking(
+        self,
+        text="IRIS is thinking..."
+    ):
+        self.remove_thinking()
+
+        row = QWidget()
+
+        row_layout = QHBoxLayout()
+
+        row_layout.setContentsMargins(
+            42,
+            0,
+            0,
+            0
+        )
+
+        label = QLabel(text)
+        label.setObjectName(
+            "thinking"
+        )
+
+        row_layout.addWidget(label)
+        row_layout.addStretch()
+
+        row.setLayout(
+            row_layout
+        )
+
+        self.thinking_widget = row
+
+        self.chat_layout.insertWidget(
+            self.chat_layout.count() - 1,
+            row
+        )
+
+        self.scroll_to_bottom()
+
+    def remove_thinking(self):
+        if self.thinking_widget is None:
+            return
+
+        widget = self.thinking_widget
+
+        self.chat_layout.removeWidget(
+            widget
+        )
+
+        widget.deleteLater()
+
+        self.thinking_widget = None
+
+    def scroll_to_bottom(self):
+        scrollbar = (
+            self.scroll_area.verticalScrollBar()
+        )
+
+        scrollbar.setValue(
+            scrollbar.maximum()
+        )
+
+    def toggle_audio(self):
+        self.audio_enabled = (
+            not self.audio_enabled
+        )
+
+        if self.audio_enabled:
+            self.audio_button.setText(
+                "🔊"
+            )
+
+            self.audio_button.setToolTip(
+                "Audio response: ON"
+            )
+
+        else:
+            self.audio_button.setText(
+                "🔇"
+            )
+
+            self.audio_button.setToolTip(
+                "Audio response: OFF"
+            )
+
+            self.stop_speech.emit()
+
     def send_message(self):
         if self.closing:
             return
@@ -167,8 +572,9 @@ class ChatWidget(QWidget):
         if not message:
             return
 
-        self.chat.append(
-            f"<b>You:</b> {message}"
+        self.add_message(
+            "You",
+            message
         )
 
         self.input.clear()
@@ -177,9 +583,7 @@ class ChatWidget(QWidget):
         self.voice_button.setEnabled(False)
         self.input.setEnabled(False)
 
-        self.chat.append(
-            "<i>IRIS is thinking...</i>"
-        )
+        self.add_thinking()
 
         self.process_message.emit(
             message
@@ -193,8 +597,8 @@ class ChatWidget(QWidget):
         self.send_button.setEnabled(False)
         self.input.setEnabled(False)
 
-        self.chat.append(
-            "<i>IRIS is listening...</i>"
+        self.add_thinking(
+            "IRIS is listening..."
         )
 
         self.start_voice.emit()
@@ -203,9 +607,12 @@ class ChatWidget(QWidget):
         if self.closing:
             return
 
+        self.remove_thinking()
+
         if not text:
-            self.chat.append(
-                "<i>No speech detected.</i>"
+            self.add_message(
+                "IRIS",
+                "I didn't hear anything."
             )
 
             self.voice_button.setEnabled(True)
@@ -215,24 +622,26 @@ class ChatWidget(QWidget):
 
             return
 
-        self.input.setText(text)
-
-        self.chat.append(
-            f"<b>You:</b> {text}"
+        self.add_message(
+            "You",
+            text
         )
 
-        self.chat.append(
-            "<i>IRIS is thinking...</i>"
-        )
+        self.add_thinking()
 
-        self.process_message.emit(text)
+        self.process_message.emit(
+            text
+        )
 
     def handle_voice_error(self, error):
         if self.closing:
             return
 
-        self.chat.append(
-            f"<b>IRIS:</b> Voice error: {error}"
+        self.remove_thinking()
+
+        self.add_message(
+            "IRIS",
+            f"Voice error: {error}"
         )
 
         self.voice_button.setEnabled(True)
@@ -255,16 +664,16 @@ class ChatWidget(QWidget):
         )
 
         box.setText(
-            f"IRIS wants to perform a "
-            f"'{action}' action."
+            f"IRIS wants to perform "
+            f"'{action}'."
         )
 
         box.setInformativeText(
             f"Request:\n{message}\n\n"
-            "Do you want to allow this action?"
+            "Allow this action?"
         )
 
-        allow_button = box.addButton(
+        allow = box.addButton(
             "Allow",
             QMessageBox.AcceptRole
         )
@@ -276,9 +685,10 @@ class ChatWidget(QWidget):
 
         box.exec()
 
-        if box.clickedButton() == allow_button:
-            self.chat.append(
-                "<i>Permission granted.</i>"
+        if box.clickedButton() == allow:
+            self.add_message(
+                "IRIS",
+                "Permission granted."
             )
 
             self.execute_approved.emit(
@@ -286,8 +696,9 @@ class ChatWidget(QWidget):
             )
 
         else:
-            self.chat.append(
-                "<i>Permission denied.</i>"
+            self.add_message(
+                "IRIS",
+                "Permission denied."
             )
 
             self.handle_response(
@@ -298,28 +709,17 @@ class ChatWidget(QWidget):
         if self.closing:
             return
 
-        cursor = self.chat.textCursor()
+        self.remove_thinking()
 
-        cursor.movePosition(
-            cursor.MoveOperation.End
+        self.add_message(
+            "IRIS",
+            response
         )
 
-        block = cursor.block()
-
-        if "IRIS is thinking..." in block.text():
-            cursor.select(
-                cursor.SelectionType.BlockUnderCursor
+        if self.audio_enabled:
+            self.speak_response.emit(
+                response
             )
-
-            cursor.removeSelectedText()
-
-            self.chat.setTextCursor(cursor)
-
-        self.chat.append(
-            f"<b>IRIS:</b> {response}"
-        )
-
-        self.speak_response.emit(response)
 
         self.send_button.setEnabled(True)
         self.voice_button.setEnabled(True)
@@ -330,8 +730,11 @@ class ChatWidget(QWidget):
         if self.closing:
             return
 
-        self.chat.append(
-            f"<b>IRIS:</b> Error: {error}"
+        self.remove_thinking()
+
+        self.add_message(
+            "IRIS",
+            f"Error: {error}"
         )
 
         self.send_button.setEnabled(True)
@@ -343,8 +746,9 @@ class ChatWidget(QWidget):
         if self.closing:
             return
 
-        self.chat.append(
-            f"<b>IRIS:</b> Voice output error: {error}"
+        self.add_message(
+            "IRIS",
+            f"Voice output error: {error}"
         )
 
     def closeEvent(self, event):
@@ -360,17 +764,5 @@ class ChatWidget(QWidget):
         self.thread.quit()
         self.voice_thread.quit()
         self.speech_thread.quit()
-
-        self.thread.wait()
-        self.voice_thread.wait()
-        self.speech_thread.wait()
-
-        self.worker.deleteLater()
-        self.voice_worker.deleteLater()
-        self.speech_worker.deleteLater()
-
-        self.thread.deleteLater()
-        self.voice_thread.deleteLater()
-        self.speech_thread.deleteLater()
 
         event.accept()

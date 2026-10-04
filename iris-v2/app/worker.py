@@ -1,3 +1,5 @@
+import time
+
 from PySide6.QtCore import QObject, Signal, Slot
 
 from core.iris_core import IRISCore
@@ -12,6 +14,7 @@ from app.voice_output import VoiceOutput
 class IRISWorker(QObject):
     finished = Signal(str)
     error = Signal(str)
+
     permission_required = Signal(str, str)
 
     def __init__(self):
@@ -70,13 +73,42 @@ class IRISWorker(QObject):
     @Slot(str)
     def execute_message(self, message):
         try:
+            start = time.perf_counter()
+
             tool_response = self.tool_manager.execute(message)
 
             if tool_response is not None:
+                elapsed = time.perf_counter() - start
+
+                print(
+                    f"[IRIS] Tool response: "
+                    f"{elapsed:.2f}s"
+                )
+
                 self.finished.emit(tool_response)
                 return
 
+            response_start = time.perf_counter()
+
             response = self.core.process(message)
+
+            response_time = (
+                time.perf_counter()
+                - response_start
+            )
+
+            total_time = (
+                time.perf_counter()
+                - start
+            )
+
+            print(
+                f"[IRIS] LLM: "
+                f"{response_time:.2f}s | "
+                f"Total: "
+                f"{total_time:.2f}s"
+            )
+
             self.finished.emit(response)
 
         except Exception as error:
@@ -96,6 +128,7 @@ class VoiceWorker(QObject):
     def listen(self):
         try:
             self.running = True
+
             text = self.voice.listen()
 
             if self.running:
@@ -116,22 +149,15 @@ class SpeechWorker(QObject):
     def __init__(self):
         super().__init__()
         self.voice = VoiceOutput()
-        self.running = True
 
     @Slot(str)
     def speak(self, text):
         try:
-            self.running = True
-
-            if not self.running:
-                return
-
             self.voice.speak(text)
 
         except Exception as error:
-            if self.running:
-                self.error.emit(str(error))
+            self.error.emit(str(error))
 
     @Slot()
     def stop(self):
-        self.running = False
+        self.voice.stop()

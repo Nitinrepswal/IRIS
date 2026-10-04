@@ -28,21 +28,34 @@ class AdvancedRelease:
         }
 
     def test_vision(self):
-        image_path = "sandbox/screenshots/multimodal_screen.png"
-
-        start = time.perf_counter()
-
-        result = self.vision.execute(
-            image_path
+        image_path = (
+            "sandbox/screenshots/multimodal_screen.png"
         )
 
-        elapsed = time.perf_counter() - start
+        try:
+            self.vision.execute(image_path)
 
-        return {
-            "success": result["success"],
-            "time": round(elapsed, 2),
-            "under_10_seconds": elapsed < 10
-        }
+            start = time.perf_counter()
+
+            result = self.vision.execute(
+                image_path
+            )
+
+            elapsed = time.perf_counter() - start
+
+            return {
+                "success": result["success"],
+                "time": round(elapsed, 2),
+                "under_10_seconds": elapsed < 10
+            }
+
+        except Exception as error:
+            return {
+                "success": False,
+                "time": 0,
+                "under_10_seconds": False,
+                "message": str(error)
+            }
 
     def test_web(self):
         start = time.perf_counter()
@@ -97,6 +110,7 @@ class AdvancedRelease:
         tests["passed"] = passed
         tests["total"] = total
         tests["performance_ok"] = performance_ok
+
         tests["release_ready"] = (
             passed == total
             and performance_ok

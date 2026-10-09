@@ -1,7 +1,8 @@
+
 class ContextManager:
     def __init__(self, max_messages=20, max_characters=6000):
-        self.max_messages = max_messages
-        self.max_characters = max_characters
+        self.max_messages = max(1, max_messages)
+        self.max_characters = max(1, max_characters)
 
     def trim_messages(self, messages):
         if not messages:
@@ -11,20 +12,29 @@ class ContextManager:
         characters = 0
 
         for message in reversed(messages):
-            content = str(message.get("content", ""))
-            message_size = len(content)
-
-            if selected and (
-                len(selected) >= self.max_messages
-                or characters + message_size > self.max_characters
-            ):
+            if len(selected) >= self.max_messages:
                 break
 
-            selected.append(message)
-            characters += message_size
+            content = str(message.get("content", ""))
+            remaining = self.max_characters - characters
+
+            if remaining <= 0:
+                break
+
+            if len(content) > remaining:
+                content = content[-remaining:]
+
+            selected.append({
+                **message,
+                "content": content
+            })
+
+            characters += len(content)
+
+            if characters >= self.max_characters:
+                break
 
         selected.reverse()
-
         return selected
 
     def get_character_count(self, messages):

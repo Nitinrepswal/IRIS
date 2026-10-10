@@ -41,11 +41,7 @@ class ConversationTopicTracker:
                 "reason": "Empty message"
             }
 
-        detection = self.detector.detect(
-            message,
-            self.history
-        )
-
+        detection = self.detector.detect(message, self.history)
         extracted_topic = self._extract_topic(message)
 
         if not self.current_topic:
@@ -55,19 +51,19 @@ class ConversationTopicTracker:
             else:
                 result_type = "uncertain"
 
+        elif (
+            extracted_topic
+            and extracted_topic.lower() != self.current_topic.lower()
+        ):
+            self.current_topic = extracted_topic
+            self.topic_changes += 1
+            result_type = "new_topic"
+
         elif detection["type"] == "follow_up":
             result_type = "follow_up"
 
         elif extracted_topic:
-            if extracted_topic.lower() != self.current_topic.lower():
-                self.current_topic = extracted_topic
-                self.topic_changes += 1
-                result_type = "new_topic"
-            else:
-                result_type = "same_topic"
-
-        elif detection["type"] == "new_topic":
-            result_type = "uncertain"
+            result_type = "same_topic"
 
         else:
             result_type = "uncertain"
@@ -93,3 +89,55 @@ class ConversationTopicTracker:
         self.history.clear()
         self.topic_changes = 0
 
+    def export_state(self):
+        return {
+            "current_topic": self.current_topic,
+            "history": [dict(item) for item in self.history],
+            "topic_changes": self.topic_changes
+        }
+
+    def restore_state(self, data):
+        if not isinstance(data, dict):
+            raise ValueError("Invalid topic tracker state")
+
+        topic = data.get("current_topic", "")
+        history = data.get("history", [])
+        changes = data.get("topic_changes", 0)
+
+        if not isinstance(topic, str):
+            raise ValueError("Topic must be a string")
+
+        if not isinstance(history, list):
+            raise ValueError("Topic history must be a list")
+
+        if type(changes) is not int or changes < 0:
+            raise ValueError(
+                "Topic changes must be a non-negative integer"
+            )
+
+        validated_history = []
+
+        for item in history:
+            if not isinstance(item, dict):
+                raise ValueError("Invalid topic history entry")
+
+            if item.get("role") != "user":
+                raise ValueError(
+                    "Topic history must contain user messages"
+                )
+
+            content = item.get("content")
+
+            if not isinstance(content, str):
+                raise ValueError(
+                    "Topic history content must be a string"
+                )
+
+            validated_history.append({
+                "role": "user",
+                "content": content
+            })
+
+        self.current_topic = topic
+        self.history = validated_history
+        self.topic_changes = changes

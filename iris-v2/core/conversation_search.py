@@ -22,7 +22,6 @@ class ConversationSearch:
             return []
 
         normalized_query = " ".join(self._tokenize(query))
-
         results = []
 
         for index, message in enumerate(messages):
@@ -47,13 +46,18 @@ class ConversationSearch:
             normalized_content = " ".join(self._tokenize(content))
             phrase_match = normalized_query in normalized_content
 
-            results.append({
+            result = {
                 "role": role,
                 "content": content,
                 "score": len(matched_words),
                 "phrase_match": phrase_match,
                 "index": index
-            })
+            }
+
+            if message.get("timestamp") is not None:
+                result["timestamp"] = message["timestamp"]
+
+            results.append(result)
 
         results.sort(
             key=lambda item: (
@@ -69,7 +73,12 @@ class ConversationSearch:
                 "role": result["role"],
                 "content": result["content"],
                 "score": result["score"],
-                "phrase_match": result["phrase_match"]
+                "phrase_match": result["phrase_match"],
+                **(
+                    {"timestamp": result["timestamp"]}
+                    if "timestamp" in result
+                    else {}
+                )
             }
             for result in results[:limit]
         ]

@@ -85,12 +85,22 @@ class ConversationIntelligence:
             self.state.get_messages()
         )
 
+        public_messages = [
+            {
+                "role": message["role"],
+                "content": message["content"]
+            }
+            for message in messages
+        ]
+
         return {
             **self.state.get_context(),
-            "messages": messages,
-            "message_count": len(messages),
+            "messages": public_messages,
+            "message_count": len(public_messages),
             "character_count": (
-                self.context_manager.get_character_count(messages)
+                self.context_manager.get_character_count(
+                    public_messages
+                )
             )
         }
 

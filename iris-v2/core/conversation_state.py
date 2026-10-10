@@ -1,3 +1,7 @@
+
+import time
+
+
 class ConversationState:
     def __init__(self):
         self.messages = []
@@ -9,7 +13,8 @@ class ConversationState:
     def add_user_message(self, message):
         self.messages.append({
             "role": "user",
-            "content": message
+            "content": message,
+            "timestamp": time.time()
         })
 
         self.last_user_message = message
@@ -18,7 +23,8 @@ class ConversationState:
     def add_assistant_message(self, message):
         self.messages.append({
             "role": "assistant",
-            "content": message
+            "content": message,
+            "timestamp": time.time()
         })
 
         self.last_response = message

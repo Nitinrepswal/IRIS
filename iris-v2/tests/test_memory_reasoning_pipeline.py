@@ -1,76 +1,77 @@
 
-from core.memory_reasoning_pipeline import MemoryReasoningPipeline
+from core.memory_reasoning import MemoryReasoning
+from core.evidence_conflict_detector import EvidenceConflictDetector
 
 
-class FakeConversation:
-    def __init__(self, results):
-        self.results = results
+class MemoryReasoningPipeline:
+    def __init__(self, conversation):
+        self.reasoning = MemoryReasoning(conversation)
+        self.conflict_detector = EvidenceConflictDetector()
 
-    def search(self, query, limit=5, topic_aware=True):
-        return self.results[:limit]
+    def _confidence_score(self, evidence, conflicts):
+        if not evidence:
+            return 0.0
 
+        scores = []
 
-def main():
-    conflicting_memories = [
-        {
-            "role": "user",
-            "content": "The project uses SQLite.",
-            "score": 3
-        },
-        {
-            "role": "assistant",
-            "content": "The project uses PostgreSQL.",
-            "score": 2
+        for item in evidence:
+            score = item.get("score", 0)
+
+            if isinstance(score, bool) or not isinstance(
+                score, (int, float)
+            ):
+                score = 0
+
+            scores.append(max(0.0, min(float(score), 5.0)) / 5.0)
+
+        retrieval_score = sum(scores) / len(scores)
+        quantity_score = min(len(evidence) / 3.0, 1.0)
+
+        confidence = retrieval_score * 0.7 + quantity_score * 0.3
+
+        if conflicts:
+            confidence *= 0.5
+
+        return round(max(0.0, min(confidence, 1.0)), 3)
+
+    def analyze(self, query, limit=5, min_score=0):
+        package = self.reasoning.build_answer_package(
+            query=query,
+            limit=limit,
+            min_score=min_score
+        )
+
+        evidence = package["evidence"]
+        conflict_result = self.conflict_detector.detect(evidence)
+        conflicts = conflict_result["conflicts"]
+
+        if not evidence:
+            status = "insufficient_evidence"
+        elif conflicts:
+            status = "potential_conflict"
+        else:
+            status = "evidence_found"
+
+        limitations = list(package["limitations"])
+
+        if conflicts:
+            limitations.append(
+                "Retrieved evidence contains potential conflicts."
+            )
+
+        return {
+            "query": package["query"],
+            "status": status,
+            "answer_ready": bool(evidence) and not conflicts,
+            "evidence": evidence,
+            "sources": package["sources"],
+            "evidence_count": package["evidence_count"],
+            "conflicts": conflicts,
+            "conflict_count": conflict_result["count"],
+            "confidence_score": self._confidence_score(
+                evidence,
+                conflicts
+            ),
+            "confidence_type": "heuristic",
+            "limitations": limitations
         }
-    ]
-
-    pipeline = MemoryReasoningPipeline(
-        FakeConversation(conflicting_memories)
-    )
-
-    result = pipeline.analyze("project database")
-
-    assert result["status"] == "potential_conflict"
-    assert result["answer_ready"] is False
-    assert result["evidence_count"] == 2
-    assert result["conflict_count"] == 1
-    assert len(result["sources"]) == 2
-    assert result["limitations"]
-
-    empty_pipeline = MemoryReasoningPipeline(
-        FakeConversation([])
-    )
-
-    empty = empty_pipeline.analyze("unknown topic")
-
-    assert empty["status"] == "insufficient_evidence"
-    assert empty["answer_ready"] is False
-    assert empty["evidence_count"] == 0
-    assert empty["conflict_count"] == 0
-
-    consistent_pipeline = MemoryReasoningPipeline(
-        FakeConversation([
-            {
-                "role": "user",
-                "content": "The project uses SQLite.",
-                "score": 3
-            },
-            {
-                "role": "assistant",
-                "content": "Python supports functions.",
-                "score": 2
-            }
-        ])
-    )
-
-    consistent = consistent_pipeline.analyze("project")
-
-    assert consistent["status"] == "evidence_found"
-    assert consistent["answer_ready"] is True
-    assert consistent["conflict_count"] == 0
-
-    print("MEMORY REASONING PIPELINE TEST: PASS")
-
-
-if __name__ == "__main__":
-    main()

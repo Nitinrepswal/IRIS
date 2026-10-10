@@ -1,5 +1,6 @@
 
 import json
+import math
 import os
 
 from core.conversation_intelligence import ConversationIntelligence
@@ -24,6 +25,13 @@ class PersistentConversation:
 
     def save(self):
         context = self.intelligence.get_context()
+        internal_messages = (
+            self.intelligence.context_manager.trim_messages(
+                self.intelligence.state.get_messages()
+            )
+        )
+
+        context["messages"] = internal_messages
 
         data = {
             "version": self.VERSION,
@@ -82,6 +90,16 @@ class PersistentConversation:
             ):
                 raise ValueError("Invalid conversation message")
 
+            timestamp = message.get("timestamp")
+
+            if timestamp is not None and (
+                isinstance(timestamp, bool)
+                or not isinstance(timestamp, (int, float))
+                or not math.isfinite(timestamp)
+                or timestamp < 0
+            ):
+                raise ValueError("Invalid message timestamp")
+
         tracker_check = self.intelligence.topic_tracker.__class__()
         tracker_check.restore_state(tracker_state)
 
@@ -96,6 +114,17 @@ class PersistentConversation:
             else:
                 new_intelligence.add_assistant_message(message["content"])
 
+            saved_timestamp = message.get("timestamp")
+
+            if saved_timestamp is not None:
+                new_intelligence.state.messages[-1]["timestamp"] = (
+                    saved_timestamp
+                )
+            else:
+                new_intelligence.state.messages[-1].pop(
+                    "timestamp", None
+                )
+
         new_intelligence.set_topic(topic)
         new_intelligence.topic_tracker.restore_state(tracker_state)
 
@@ -103,8 +132,10 @@ class PersistentConversation:
         return True
 
     def search_history(self, query, limit=5, topic_aware=True):
-        context = self.intelligence.get_context()
-        messages = context.get("messages", [])
+        messages = self.intelligence.state.get_messages()
+        messages = self.intelligence.context_manager.trim_messages(
+            messages
+        )
 
         search_limit = len(messages) if topic_aware else limit
 

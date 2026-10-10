@@ -3,6 +3,7 @@ import json
 import os
 
 from core.conversation_intelligence import ConversationIntelligence
+from core.conversation_search import ConversationSearch
 
 
 class PersistentConversation:
@@ -19,6 +20,7 @@ class PersistentConversation:
             max_messages=max_messages,
             max_characters=max_characters
         )
+        self.search = ConversationSearch()
 
     def save(self):
         context = self.intelligence.get_context()
@@ -32,6 +34,7 @@ class PersistentConversation:
         }
 
         directory = os.path.dirname(self.path)
+
         if directory:
             os.makedirs(directory, exist_ok=True)
 
@@ -46,7 +49,9 @@ class PersistentConversation:
             with open(self.path, "r", encoding="utf-8") as file:
                 data = json.load(file)
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-            raise ValueError("Saved conversation is not valid JSON") from exc
+            raise ValueError(
+                "Saved conversation is not valid JSON"
+            ) from exc
 
         if not isinstance(data, dict):
             raise ValueError("Invalid saved conversation")
@@ -77,7 +82,6 @@ class PersistentConversation:
             ):
                 raise ValueError("Invalid conversation message")
 
-        # Validate tracker state before modifying live state.
         tracker_check = self.intelligence.topic_tracker.__class__()
         tracker_check.restore_state(tracker_state)
 
@@ -97,6 +101,16 @@ class PersistentConversation:
 
         self.intelligence = new_intelligence
         return True
+
+    def search_history(self, query, limit=5):
+        context = self.intelligence.get_context()
+        messages = context.get("messages", [])
+
+        return self.search.search(
+            query=query,
+            messages=messages,
+            limit=limit
+        )
 
     def get_context(self):
         return self.intelligence.get_context()

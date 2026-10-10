@@ -1,0 +1,123 @@
+
+[
+  {
+    "id": 1,
+    "message": "Hello IRIS",
+    "expected_intent": "chat",
+    "expected_tool": "none"
+  },
+  {
+    "id": 2,
+    "message": "How are you doing?",
+    "expected_intent": "chat",
+    "expected_tool": "none"
+  },
+  {
+    "id": 3,
+    "message": "Explain recursion",
+    "expected_intent": "information",
+    "expected_tool": "none"
+  },
+  {
+    "id": 4,
+    "message": "Search the web for Python tutorials",
+    "expected_intent": "information",
+    "expected_tool": "browser"
+  },
+  {
+    "id": 5,
+    "message": "Find my resume",
+    "expected_intent": "filesystem",
+    "expected_tool": "filesystem_search"
+  },
+  {
+    "id": 6,
+    "message": "Search the current folder for notes",
+    "expected_intent": "filesystem",
+    "expected_tool": "filesystem_search"
+  },
+  {
+    "id": 7,
+    "message": "Create a file named hello.txt",
+    "expected_intent": "filesystem",
+    "expected_tool": "filesystem_edit"
+  },
+  {
+    "id": 8,
+    "message": "Remember that I am building IRIS",
+    "expected_intent": "memory",
+    "expected_tool": "memory"
+  },
+  {
+    "id": 9,
+    "message": "What do you remember about my project?",
+    "expected_intent": "memory",
+    "expected_tool": "memory"
+  },
+  {
+    "id": 10,
+    "message": "Run the Python script",
+    "expected_intent": "terminal",
+    "expected_tool": "terminal"
+  },
+  {
+    "id": 11,
+    "message": "Execute this shell command",
+    "expected_intent": "terminal",
+    "expected_tool": "terminal"
+  },
+  {
+    "id": 12,
+    "message": "Show my operating system version",
+    "expected_intent": "information",
+    "expected_tool": "system"
+  },
+  {
+    "id": 13,
+    "message": "Open the calculator application",
+    "expected_intent": "information",
+    "expected_tool": "application"
+  },
+  {
+    "id": 14,
+    "message": "Do it",
+    "expected_intent": "chat",
+    "expected_tool": "none"
+  },
+  {
+    "id": 15,
+    "message": "Fix this",
+    "expected_intent": "chat",
+    "expected_tool": "none"
+  },
+  {
+    "id": 16,
+    "message": "Find my resume and read its contents",
+    "expected_intent": "filesystem",
+    "expected_tool": "filesystem_search"
+  },
+  {
+    "id": 17,
+    "message": "Search the web and summarize the results",
+    "expected_intent": "information",
+    "expected_tool": "browser"
+  },
+  {
+    "id": 18,
+    "message": "Delete my project folder",
+    "expected_intent": "filesystem",
+    "expected_tool": "filesystem_edit"
+  },
+  {
+    "id": 19,
+    "message": "What is the weather today?",
+    "expected_intent": "information",
+    "expected_tool": "browser"
+  },
+  {
+    "id": 20,
+    "message": "Tell me a joke",
+    "expected_intent": "chat",
+    "expected_tool": "none"
+  }
+]

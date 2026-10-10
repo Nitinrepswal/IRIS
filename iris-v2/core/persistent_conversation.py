@@ -102,15 +102,42 @@ class PersistentConversation:
         self.intelligence = new_intelligence
         return True
 
-    def search_history(self, query, limit=5):
+    def search_history(self, query, limit=5, topic_aware=True):
         context = self.intelligence.get_context()
         messages = context.get("messages", [])
 
-        return self.search.search(
+        search_limit = len(messages) if topic_aware else limit
+
+        results = self.search.search(
             query=query,
             messages=messages,
-            limit=limit
+            limit=search_limit
         )
+
+        if not topic_aware:
+            return results[:limit]
+
+        topic = self.intelligence.topic_tracker.get_topic()
+
+        if not topic.strip():
+            return results[:limit]
+
+        topic_words = set(topic.lower().split())
+
+        for result in results:
+            content_words = set(result["content"].lower().split())
+            result["topic_score"] = len(topic_words & content_words)
+
+        results.sort(
+            key=lambda item: (
+                item["topic_score"],
+                item["phrase_match"],
+                item["score"]
+            ),
+            reverse=True
+        )
+
+        return results[:limit]
 
     def get_context(self):
         return self.intelligence.get_context()

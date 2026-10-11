@@ -1,3 +1,4 @@
+
 import json
 import os
 from datetime import datetime
@@ -10,7 +11,6 @@ class Logger:
 
     def _ensure_directory(self):
         directory = os.path.dirname(self.path)
-
         if directory:
             os.makedirs(directory, exist_ok=True)
 
@@ -18,7 +18,7 @@ class Logger:
         entry = {
             "timestamp": datetime.now().isoformat(),
             "level": level,
-            "message": str(message)
+            "message": str(message),
         }
 
         if context is not None:
@@ -26,20 +26,10 @@ class Logger:
 
         try:
             logs = self._load()
-
             logs.append(entry)
 
-            with open(
-                self.path,
-                "w",
-                encoding="utf-8"
-            ) as file:
-                json.dump(
-                    logs,
-                    file,
-                    indent=2
-                )
-
+            with open(self.path, "w", encoding="utf-8") as file:
+                json.dump(logs, file, indent=2)
         except Exception:
             pass
 
@@ -50,56 +40,31 @@ class Logger:
             return []
 
         try:
-            with open(
-                self.path,
-                "r",
-                encoding="utf-8"
-            ) as file:
+            with open(self.path, "r", encoding="utf-8") as file:
                 data = json.load(file)
 
-            if isinstance(data, list):
-                return data
-
+            return data if isinstance(data, list) else []
         except (json.JSONDecodeError, OSError):
-            pass
-
-        return []
+            return []
 
     def debug(self, message, context=None):
-        return self._write(
-            "DEBUG",
-            message,
-            context
-        )
+        return self._write("DEBUG", message, context)
 
     def info(self, message, context=None):
-        return self._write(
-            "INFO",
-            message,
-            context
-        )
+        return self._write("INFO", message, context)
 
     def warning(self, message, context=None):
-        return self._write(
-            "WARNING",
-            message,
-            context
-        )
+        return self._write("WARNING", message, context)
 
     def error(self, message, context=None):
-        return self._write(
-            "ERROR",
-            message,
-            context
-        )
+        return self._write("ERROR", message, context)
 
     def get_logs(self):
         return self._load()
 
     def get_by_level(self, level):
         return [
-            entry
-            for entry in self._load()
+            entry for entry in self._load()
             if entry.get("level") == level
         ]
 
@@ -109,3 +74,26 @@ class Logger:
                 os.remove(self.path)
         except OSError:
             pass
+
+
+class IRISLogger(Logger):
+    def log(self, event, details=None):
+        entry = self._write("INFO", event, details)
+        entry["event"] = event
+        entry["details"] = details or {}
+
+        try:
+            logs = self._load()
+            if logs:
+                logs[-1]["event"] = event
+                logs[-1]["details"] = details or {}
+
+                with open(self.path, "w", encoding="utf-8") as file:
+                    json.dump(logs, file, indent=2)
+        except Exception:
+            pass
+
+        return entry
+
+    def get_logs(self):
+        return self._load()

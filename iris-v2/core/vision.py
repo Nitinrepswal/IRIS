@@ -33,25 +33,27 @@ class VisionEngine:
         if prompt is None:
             prompt = (
                 "Describe the visible computer screen. Identify the main "
-                "application, summarize the screen, list visible UI elements, "
-                "and suggest possible next actions. Do not execute actions. "
-                "Return a JSON object with keys: application, screen_summary, "
-                "visible_elements, suggested_actions. Each visible element "
-                "must have type and description fields."
+                "application, summarize the screen, and list visible UI "
+                "elements. Suggest possible next actions, but do not execute "
+                "actions. Return only a valid JSON object with keys: "
+                "application, screen_summary, visible_elements, "
+                "suggested_actions. Each visible element must contain "
+                "type and description strings. suggested_actions must be "
+                "a list of strings."
             )
 
         prepared_image = self.prepare_image(image_path)
 
         response = ollama.chat(
             model=self.model,
-            options={"num_predict": 250},
+            options={"num_predict": 120},
             messages=[
                 {
                     "role": "user",
                     "content": prompt,
-                    "images": [prepared_image]
+                    "images": [prepared_image],
                 }
-            ]
+            ],
         )
 
         return response["message"]["content"]
@@ -100,13 +102,13 @@ class VisionEngine:
                 "application": application.strip(),
                 "screen_summary": summary.strip(),
                 "visible_elements": elements,
-                "suggested_actions": actions
+                "suggested_actions": actions,
             }
 
         except Exception as error:
             return {
                 "success": False,
-                "message": str(error)
+                "message": str(error),
             }
 
     def detect_ui_elements(self, screen):
@@ -164,11 +166,13 @@ class VisionEngine:
 
                 bbox = list(bbox)
 
-            detected.append({
-                "type": element_type,
-                "description": description.strip(),
-                "bbox": bbox
-            })
+            detected.append(
+                {
+                    "type": element_type,
+                    "description": description.strip(),
+                    "bbox": bbox,
+                }
+            )
 
         return detected
 
@@ -178,11 +182,11 @@ class VisionEngine:
 
             return {
                 "success": True,
-                "description": result
+                "description": result,
             }
 
         except Exception as error:
             return {
                 "success": False,
-                "message": str(error)
+                "message": str(error),
             }

@@ -27,26 +27,22 @@ class AdvancedRelease:
             "time": round(elapsed, 2)
         }
 
+    
     def test_vision(self):
-        image_path = (
-            "sandbox/screenshots/multimodal_screen.png"
-        )
+        image_path = "sandbox/screenshots/multimodal_screen.png"
 
         try:
-            self.vision.execute(image_path)
-
             start = time.perf_counter()
-
-            result = self.vision.execute(
-                image_path
-            )
-
+            result = self.vision.execute(image_path)
             elapsed = time.perf_counter() - start
 
             return {
-                "success": result["success"],
+                "success": (
+                    isinstance(result, dict)
+                    and result.get("success") is True
+                ),
                 "time": round(elapsed, 2),
-                "under_10_seconds": elapsed < 10
+                "under_10_seconds": elapsed < 10,
             }
 
         except Exception as error:
@@ -54,8 +50,9 @@ class AdvancedRelease:
                 "success": False,
                 "time": 0,
                 "under_10_seconds": False,
-                "message": str(error)
+                "message": str(error),
             }
+
 
     def test_web(self):
         start = time.perf_counter()

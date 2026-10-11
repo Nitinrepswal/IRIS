@@ -1,8 +1,10 @@
-
 class ActionVerifier:
     def verify(self, action, execution_result, observation):
         if not isinstance(action, dict):
             return self._result("failed", "Action must be a dictionary")
+
+        if not isinstance(action.get("type"), str) or not action["type"].strip():
+            return self._result("failed", "Action type is missing or invalid")
 
         if not isinstance(execution_result, dict):
             return self._result("failed", "Execution result must be a dictionary")
@@ -25,7 +27,7 @@ class ActionVerifier:
                 observation.get("message", "Observation failed")
             )
 
-        if action.get("type") == "type":
+        if action["type"] == "type":
             expected_text = action.get("text")
 
             if not isinstance(expected_text, str) or not expected_text:

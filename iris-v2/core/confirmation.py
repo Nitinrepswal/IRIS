@@ -1,21 +1,23 @@
+
+from core.computer_action_policy import ComputerActionPolicy
+
+
 class ConfirmationSystem:
     def __init__(self):
-        self.risky_actions = {
-            "terminal",
-            "filesystem"
-        }
-
-        self.blocked_actions = {
-            "unknown"
-        }
+        self.policy = ComputerActionPolicy()
 
     def requires_confirmation(self, action):
-        return action in self.risky_actions
+        return self.policy.requires_confirmation(action)
 
     def is_blocked(self, action):
-        return action in self.blocked_actions
+        return self.policy.is_blocked(action)
 
     def confirm(self, action):
+        if not isinstance(action, str) or not action.strip():
+            return False
+
+        action = action.strip().lower()
+
         if self.is_blocked(action):
             return False
 

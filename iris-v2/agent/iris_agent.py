@@ -1,3 +1,4 @@
+
 from core.planner import PlanningEngine
 from core.task_decomposer import TaskDecomposer
 from core.task_state import TaskState
@@ -15,29 +16,43 @@ class IRISAgent:
 
     def run(self, message):
         plan = self.planner.plan(message)
-
         decomposition = self.decomposer.decompose(message)
 
-        tasks = decomposition["tasks"]
+        planned_tasks = plan.get("tasks", [])
+        tasks = decomposition.get("tasks", [])
+
+        planned_tools = {
+            task.get("step"): task.get("tool")
+            for task in planned_tasks
+            if isinstance(task, dict)
+        }
+
+        for task in tasks:
+            if not isinstance(task, dict):
+                continue
+
+            if not task.get("tool"):
+                tool = planned_tools.get(task.get("step"))
+                if tool:
+                    task["tool"] = tool
 
         state = TaskState(
             goal=decomposition["goal"],
-            tasks=tasks
+            tasks=tasks,
         )
-
         state.start()
 
         results = self.executor.execute(tasks)
 
         for result in results:
-            if result.get("result", {}).get("success"):
+            tool_result = result.get("result", {})
+            if tool_result.get("success") is True:
                 state.complete_step(result)
             else:
                 state.fail_step(result)
                 break
 
         tracker = GoalTracker(state)
-
         evaluation = self.evaluator.evaluate(state)
 
         return {
@@ -46,5 +61,5 @@ class IRISAgent:
             "tasks": tasks,
             "results": results,
             "goal_state": tracker.get_goal_state(),
-            "evaluation": evaluation
+            "evaluation": evaluation,
         }

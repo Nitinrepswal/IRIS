@@ -12,7 +12,13 @@ class IRISCore:
         self.memory = memory
 
     def register_tool(self, name, tool):
-        self.tools[name] = tool
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("Tool name must be a non-empty string")
+
+        if tool is None:
+            raise ValueError("Tool cannot be None")
+
+        self.tools[name.strip()] = tool
 
     def set_agent(self, agent):
         self.agent = agent

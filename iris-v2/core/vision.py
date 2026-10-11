@@ -1,4 +1,3 @@
-
 import json
 import os
 
@@ -9,7 +8,7 @@ from PIL import Image
 class VisionEngine:
     def __init__(self):
         self.model = "granite3.2-vision:2b"
-        self.max_size = (640, 400)
+        self.max_size = (256, 160)
 
     def prepare_image(self, image_path):
         with Image.open(image_path) as image:
@@ -32,21 +31,20 @@ class VisionEngine:
     def analyze(self, image_path, prompt=None):
         if prompt is None:
             prompt = (
-                "Describe the visible computer screen. Identify the main "
-                "application, summarize the screen, and list visible UI "
-                "elements. Suggest possible next actions, but do not execute "
-                "actions. Return only a valid JSON object with keys: "
-                "application, screen_summary, visible_elements, "
-                "suggested_actions. Each visible element must contain "
-                "type and description strings. suggested_actions must be "
-                "a list of strings."
+                "Analyze this computer screenshot. Return only valid JSON "
+                "with keys: application, screen_summary, visible_elements, "
+                "suggested_actions. Keep application and screen_summary "
+                "brief. Include at most 5 visible elements, each with type "
+                "and description strings. Include at most 3 suggested "
+                "actions as strings. Do not invent details. Close the JSON "
+                "completely."
             )
 
         prepared_image = self.prepare_image(image_path)
 
         response = ollama.chat(
             model=self.model,
-            options={"num_predict": 120},
+            options={"num_predict": 400},
             messages=[
                 {
                     "role": "user",
@@ -179,12 +177,10 @@ class VisionEngine:
     def execute(self, image_path, prompt=None):
         try:
             result = self.analyze(image_path, prompt)
-
             return {
                 "success": True,
                 "description": result,
             }
-
         except Exception as error:
             return {
                 "success": False,

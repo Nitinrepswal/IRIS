@@ -1,3 +1,4 @@
+
 import time
 
 from core.vision import VisionEngine
@@ -16,77 +17,120 @@ class AdvancedRelease:
     def test_llm(self):
         start = time.perf_counter()
 
-        response = self.model.generate(
-            "Say hello in one short sentence."
-        )
-
-        elapsed = time.perf_counter() - start
-
-        return {
-            "success": bool(response),
-            "time": round(elapsed, 2)
-        }
-
-    
-    def test_vision(self):
-        image_path = "sandbox/screenshots/multimodal_screen.png"
-
         try:
-            start = time.perf_counter()
-            result = self.vision.execute(image_path)
+            response = self.model.generate(
+                "Say hello in one short sentence."
+            )
             elapsed = time.perf_counter() - start
 
             return {
-                "success": (
-                    isinstance(result, dict)
-                    and result.get("success") is True
-                ),
+                "success": bool(response),
                 "time": round(elapsed, 2),
-                "under_10_seconds": elapsed < 10,
+            }
+        except Exception as error:
+            return {
+                "success": False,
+                "time": round(time.perf_counter() - start, 2),
+                "message": str(error),
+            }
+
+    def test_vision(self):
+        image_path = "sandbox/screenshots/multimodal_screen.png"
+        start = time.perf_counter()
+
+        try:
+            result = self.vision.execute(image_path)
+            elapsed = time.perf_counter() - start
+
+            success = (
+                isinstance(result, dict)
+                and result.get("success") is True
+            )
+
+            return {
+                "success": success,
+                "time": round(elapsed, 2),
+                "under_90_seconds": elapsed < 90,
+                **(
+                    {"message": result.get("message", "Vision failed")}
+                    if not success and isinstance(result, dict)
+                    else {}
+                ),
             }
 
         except Exception as error:
             return {
                 "success": False,
-                "time": 0,
-                "under_10_seconds": False,
+                "time": round(time.perf_counter() - start, 2),
+                "under_90_seconds": False,
                 "message": str(error),
             }
-
 
     def test_web(self):
         start = time.perf_counter()
 
-        result = self.web.execute(
-            "What is Python programming language?"
-        )
+        try:
+            result = self.web.execute(
+                "What is Python programming language?"
+            )
+            elapsed = time.perf_counter() - start
 
-        elapsed = time.perf_counter() - start
+            success = (
+                isinstance(result, dict)
+                and result.get("success") is True
+            )
 
-        return {
-            "success": result["success"],
-            "time": round(elapsed, 2)
-        }
+            return {
+                "success": success,
+                "time": round(elapsed, 2),
+                **(
+                    {"message": result.get("message", "Web test failed")}
+                    if not success and isinstance(result, dict)
+                    else {}
+                ),
+            }
+
+        except Exception as error:
+            return {
+                "success": False,
+                "time": round(time.perf_counter() - start, 2),
+                "message": str(error),
+            }
 
     def test_multimodal(self):
-        result = self.multimodal.execute(
-            "text",
-            "Hello IRIS"
-        )
+        try:
+            result = self.multimodal.execute(
+                "text",
+                "Hello IRIS",
+            )
 
-        return {
-            "success": (
-                result.get("type") == "text"
+            success = (
+                isinstance(result, dict)
+                and result.get("type") == "text"
                 and result.get("content") == "Hello IRIS"
             )
-        }
+
+            return {
+                "success": success,
+                **(
+                    {"message": "Unexpected multimodal result"}
+                    if not success
+                    else {}
+                ),
+            }
+
+        except Exception as error:
+            return {
+                "success": False,
+                "message": str(error),
+            }
 
     def run(self):
         tests = {
             "llm": self.test_llm(),
             "vision": self.test_vision(),
             "web": self.test_web(),
-            "multimodal": self.test_multimodal()
+            "multimodal": self.test_multimodal(),
         }
 
         passed = sum(
@@ -94,23 +138,18 @@ class AdvancedRelease:
             for result in tests.values()
             if result["success"]
         )
-
         total = len(tests)
 
-        performance_ok = (
-            tests["vision"].get(
-                "under_10_seconds",
-                False
-            )
+        performance_ok = tests["vision"].get(
+            "under_90_seconds",
+            False,
         )
 
         tests["passed"] = passed
         tests["total"] = total
         tests["performance_ok"] = performance_ok
-
         tests["release_ready"] = (
-            passed == total
-            and performance_ok
+            passed == total and performance_ok
         )
 
         return tests

@@ -1,6 +1,5 @@
-from urllib.parse import quote
-from urllib.request import Request, urlopen
-import json
+
+from ddgs import DDGS
 
 from tools.tool import Tool
 
@@ -9,65 +8,59 @@ class WebSearchTool(Tool):
     def __init__(self):
         super().__init__(
             name="web_search",
-            description="Searches the web and returns search results."
+            description="Searches the web and retrieves page content."
         )
 
     def execute(self, query, limit=5):
-        encoded_query = quote(query)
+        query = query.strip()
 
-        url = (
-            "https://api.duckduckgo.com/"
-            f"?q={encoded_query}"
-            "&format=json"
-            "&no_html=1"
-            "&skip_disambig=1"
-        )
+        if not query:
+            return []
 
-        request = Request(
-            url,
-            headers={
-                "User-Agent": "IRIS/1.0"
-            }
-        )
+        if query.lower() == "ml":
+            query = "machine learning ML"
 
-        with urlopen(request, timeout=10) as response:
-            data = json.loads(
-                response.read().decode(
-                    "utf-8",
-                    errors="ignore"
+        try:
+            with DDGS() as search:
+                results = search.text(
+                    query,
+                    max_results=limit
                 )
-            )
 
-        results = []
+                cleaned_results = []
 
-        if data.get("AbstractText"):
-            results.append({
-                "title": data.get("Heading", ""),
-                "url": data.get("AbstractURL", ""),
-                "snippet": data.get("AbstractText", "")
-            })
+                for result in results or []:
+                    title = result.get("title", "").strip()
+                    url = result.get("href", "").strip()
+                    snippet = result.get("body", "").strip()
 
-        for item in data.get("RelatedTopics", []):
-            if "Topics" in item:
-                for topic in item["Topics"]:
-                    if len(results) >= limit:
-                        break
+                    if not title or not url:
+                        continue
 
-                    if "Text" in topic and "FirstURL" in topic:
-                        results.append({
-                            "title": topic["Text"],
-                            "url": topic["FirstURL"],
-                            "snippet": topic["Text"]
-                        })
+                    content = ""
 
-            elif "Text" in item and "FirstURL" in item:
-                results.append({
-                    "title": item["Text"],
-                    "url": item["FirstURL"],
-                    "snippet": item["Text"]
-                })
+                    if len(cleaned_results) < 3:
+                        try:
+                            page = search.extract(
+                                url,
+                                fmt="text_plain"
+                            )
+                            content = page.get("content", "").strip()
+                        except Exception as error:
+                            print(
+                                f"[IRIS] Could not extract {url}: "
+                                f"{error}"
+                            )
 
-            if len(results) >= limit:
-                break
+                    cleaned_results.append({
+                        "title": title,
+                        "url": url,
+                        "snippet": snippet,
+                        "content": content[:5000]
+                    })
 
-        return results[:limit]
+                return cleaned_results
+
+        except Exception as error:
+            print(f"[IRIS] Web search error: {error}")
+            return []

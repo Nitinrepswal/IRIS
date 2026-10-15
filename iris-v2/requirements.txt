@@ -1,0 +1,7 @@
+PySide6-Essentials>=6.6
+ollama>=0.4
+numpy>=1.26
+sounddevice>=0.5
+SpeechRecognition>=3.10
+ddgs>=9.0
+Pillow>=10.0

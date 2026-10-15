@@ -71,6 +71,7 @@ class WebControl:
         )
 
         return f"{summary}\n\nSources:\n{links}"
+
     def execute(self, message):
         text = message.strip()
         lower = text.lower()
@@ -91,18 +92,46 @@ class WebControl:
 
             return self.summarize_results(query, results)
 
+        # Let the application handler process this command.
+        if lower == "open application":
+            return None
+
         match = re.match(
             r"(open|visit|browse)\s+(.+)",
             text,
-            re.IGNORECASE
+            re.IGNORECASE,
         )
 
         if match:
             url = match.group(2).strip()
+            site = url.lower().rstrip("/")
 
-            if not url.startswith(("http://", "https://")):
+            known_sites = {
+                "linkedin": "https://www.linkedin.com/",
+                "google": "https://www.google.com/",
+                "youtube": "https://www.youtube.com/",
+                "github": "https://github.com/",
+                "gmail": "https://mail.google.com/",
+                "reddit": "https://www.reddit.com/",
+                "instagram": "https://www.instagram.com/",
+                "facebook": "https://www.facebook.com/",
+                "x": "https://x.com/",
+                "leetcode":"https://leetcode.com/",
+            }
+
+            if site in known_sites:
+                url = known_sites[site]
+            elif not url.startswith(("http://", "https://")):
                 url = "https://" + url
 
-            return self.launch(url)["message"]
+            result = self.launch(url)
+
+            if result.get("success"):
+                return f"Opened {url}"
+
+            return result.get(
+                "message",
+                "Could not open the website."
+            )
 
         return None

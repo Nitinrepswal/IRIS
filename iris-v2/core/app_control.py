@@ -14,20 +14,23 @@ class AppControl:
             "safari": "Safari"
         }
 
+    
     def detect_application(self, message):
         text = message.lower().strip()
+
+        # Leave combined requests for the multi-action handler.
+        if re.search(r"\b(and then|then|and)\b", text):
+            return None
 
         for name, application in self.applications.items():
             if name not in text:
                 continue
 
-            if re.search(
-                r"\b(open|launch|start|run)\b",
-                text
-            ):
+            if re.search(r"\b(open|launch|start|run)\b", text):
                 return application
 
         return None
+
 
     def execute(self, message):
         application = self.detect_application(message)

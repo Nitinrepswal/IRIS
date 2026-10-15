@@ -2,6 +2,7 @@ import os
 import subprocess
 from PySide6.QtWidgets import (
     QWidget,
+    QInputDialog,
     QApplication,
     QVBoxLayout,
     QHBoxLayout,
@@ -346,7 +347,7 @@ class ChatWidget(QWidget):
         prompts = [
             ("⌕", "Search the web", "Find current information and sources.", "Search web for "),
             ("▤", "Find a file", "Search files available on your Mac.", "Find file "),
-            ("⌘", "Open Calculator", "Launch the Calculator application.", "Open Calculator"),
+            ("⌘", "Open application ", "Launch an application on your Mac.", "Open Application"),
             ("▱", "System information", "Check your Mac's hardware and status.", "System information"),
         ]
 
@@ -741,15 +742,21 @@ class ChatWidget(QWidget):
 
         self.speech_thread.start()
 
+   
     def select_prompt(self, message):
         self.input.setText(message)
         self.input.setFocus()
         self.input.setCursorPosition(len(message))
 
-        if message in ("Find file ", "Search web for "):
+        if message.strip() in (
+            "Find file",
+            "Search web for",
+            "Open Application",
+        ):
             return
 
         self.send_message()
+
 
     def add_message(
         self,
